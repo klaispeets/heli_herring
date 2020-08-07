@@ -1,5 +1,5 @@
 rm(list=ls())
-#klaispeets; minugihubipassword
+#klaispeets; minugithubipassword
 user = "riina"
 if(user == "riina"){setwd("~/work/Heli/heli herring")}
 load("consolidated_herring.RData")
