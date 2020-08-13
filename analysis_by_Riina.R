@@ -14,6 +14,10 @@ pairs(d[,c(9:12)]) #Avaosas enam mitte nii väga
 
 d = d[which(d$year %in% c(1957:2015)),]
 
+d$N[which(d$year == 2002)] = mean(d$N[which(d$year %in% c(2001,2003))])
+d$E2[which(d$year == 1986)] = mean(d$E2[which(d$year %in% c(1985,1986,1987))])
+d$E1[which(d$year == 1986)] = mean(d$E1[which(d$year %in% c(1985,1986, 1987))])
+
 #SW
 #Kronoloogiline või piki SSB-d?
 type = "kronoloogiline"
