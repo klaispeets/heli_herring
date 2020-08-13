@@ -137,4 +137,13 @@ if(TRUE){
   axis(4)
   mtext("Mean wa of the window", side = 4, line = 1.3, cex = 0.5, col = grey(0.5))
   mtext("R vs wa", side=3, adj=0, cex= 0.6)
+  
+  plot(d$R ~ d$year, ylab="R", xlab="Year", pch = 16)
+  lines(d$R ~ d$year)
+  par(new = T)
+  plot(d$SSB0 ~ d$year, axes = F, ylab = "", xlab ="" )
+  lines(d$SSB0 ~ d$year,  col = grey(0.5), lwd = 2)
+  axis(4)
+  mtext("R and SSB", side=3, adj=0, cex= 0.6)
+  mtext("SSB", side=4, line = 1.3, cex = 0.5, col = grey(0.5))
 }
