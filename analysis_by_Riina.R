@@ -44,8 +44,8 @@ mtext("wa", side=3, adj=0, cex= 0.6)
 #SW
 #Kronoloogiline või piki SSB-d?
 type = "kronoloogiline"
-#type="SSB"
-if(type == "SSB"){newdata = d[order(d$SSB),]}else{newdata = d[order(d$year),]}
+#type="SSB0"
+if(type == "SSB0"){newdata = d[order(d$SSB0),]}else{newdata = d[order(d$year),]}
 
 cor1 = rep(NA,41) # E1
 cor2 = rep(NA,41) # E2
@@ -75,12 +75,12 @@ for(i in 1:41){
   mean_E3[i] = mean(newdata$E3[idx])
   mean_N[i] = mean(newdata$N[idx])
   mean_wa[i] = mean(newdata$wa[idx])
-  if(type == "SSB"){cy[i] = round(mean(newdata$SSB[idx]), digits=0)}else{cy[i] = round(mean(newdata$year[idx]), digits=0)}
+  if(type == "SSB0"){cy[i] = round(mean(newdata$SSB0[idx]), digits=0)}else{cy[i] = round(mean(newdata$year[idx]), digits=0)}
 }
 
 par(mfrow = c(3, 2), tck=-0.02,mar=c(2.5,2.5,2.5,2.5), mgp = c(1.3,0.3,0))
 
-xlabel = ifelse(type =="SSB", "Mean SSB", "Middle year")
+xlabel = ifelse(type =="SSB0", "Mean SSB", "Middle year")
 
 if(TRUE){
   plot(cor1 ~ cy, ylab="Pearsons' r", xlab = xlabel, pch = 16)
