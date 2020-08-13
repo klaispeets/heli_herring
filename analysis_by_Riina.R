@@ -4,7 +4,6 @@ user = "riina" # Kirjuta siia "heli" asemele, siis võtab sul õige kausta lahti
 if(user == "riina"){setwd("~/work/Heli/heli herring")}else{setwd("~/Desktop/Herring_data/heli_herring-master")}
 load("consolidated_herring.RData")
 
-
 #Kasutame alguses ainult neid ridu kus koik muutujad olemas
 d = data[which(data$complete == "yes"),]
 
@@ -17,6 +16,30 @@ d = d[which(d$year %in% c(1957:2015)),]
 d$N[which(d$year == 2002)] = mean(d$N[which(d$year %in% c(2001,2003))])
 d$E2[which(d$year == 1986)] = mean(d$E2[which(d$year %in% c(1985,1986,1987))])
 d$E1[which(d$year == 1986)] = mean(d$E1[which(d$year %in% c(1985,1986, 1987))])
+
+#Aegread
+
+par(mfrow = c(3, 2), tck=-0.02,mar=c(2.5,2.5,2.5,2.5), mgp = c(1.3,0.3,0))
+
+plot(d$E1 ~ d$year, ylab=expression(paste("Abudance (log ind. ",m**-2,")")), xlab="Year", pch = 16)
+lines(d$E1 ~ d$year)
+mtext("E1", side=3, adj=0, cex= 0.6)
+
+plot(d$E2 ~ d$year, ylab=expression(paste("Abudance (log ind. ",m**-2,")")), xlab="Year", pch = 16)
+lines(d$E2 ~ d$year)
+mtext("E2", side=3, adj=0, cex= 0.6)
+
+plot(d$E3 ~ d$year, ylab=expression(paste("Abudance (log ind. ",m**-2,")")), xlab="Year", pch = 16)
+lines(d$E3 ~ d$year)
+mtext("E3", side=3, adj=0, cex= 0.6)
+
+plot(d$N ~ d$year, ylab=expression(paste("Abudance (log ind. ",m**-2,")")), xlab="Year", pch = 16)
+lines(d$N ~ d$year)
+mtext("N", side=3, adj=0, cex= 0.6)
+
+plot(d$wa ~ d$year, ylab="winter severity", xlab="Year", pch = 16)
+lines(d$wa ~ d$year)
+mtext("wa", side=3, adj=0, cex= 0.6)
 
 #SW
 #Kronoloogiline või piki SSB-d?
