@@ -147,3 +147,81 @@ if(TRUE){
   mtext("R and SSB", side=3, adj=0, cex= 0.6)
   mtext("SSB", side=4, line = 1.3, cex = 0.5, col = grey(0.5))
 }
+
+
+#Let's try the GAM models with interaction (tensor product)
+
+library(mgcv)
+summary(gam(R ~ te(N, SSB0, k = 4), data = d))#R2adj: 0.29
+summary(gam(R ~ te(E1, SSB0, k = 4), data = d))#0.245
+summary(gam(R ~ te(E2, SSB0, k = 4), data = d))#0.23
+summary(gam(R ~ te(E3, SSB0, k = 4), data = d))#0.23
+summary(gam(R ~ te(wa, SSB0, k = 4), data = d))#0.39# best one!
+
+#Step2
+summary(gam(R ~ te(wa, SSB0, k = 4) + te(N, SSB0, k = 4), data = d))#0.42, marignally sign.
+summary(gam(R ~ te(wa, SSB0, k = 4) + te(E1, SSB0, k = 4), data = d))#NS
+summary(gam(R ~ te(wa, SSB0, k = 4) + te(E3, SSB0, k = 4), data = d))#NS
+
+#Step3: food in interaction with wa
+summary(gam(R ~ te(wa, SSB0, k = 4) + te(N, wa, k = 4), data = d))#NA
+summary(gam(R ~ te(wa, SSB0, k = 4) + te(E1, wa, k = 4), data = d))#NS
+summary(gam(R ~ te(wa, SSB0, k = 4) + te(E3, wa, k = 4), data = d))#Rsq adj 0.49 (from 0.39), but te(E3,wa) is only marginally sign
+
+#Step 4: interaction between N and E3
+summary(gam(R ~ te(wa, SSB0, k = 4) + te(E3, N, k = 4), data = d))#Rsq adj 0.49 (from 0.39), but te(E3,N) is only marginally significant (0.07)
+
+#Out of sample prediction ability and influential years
+#Aim of next step is to identify which model is the best in out of sample prediction category, and whether there are some years that seem to affect the model most
+
+newdata = subset(d, select = c("year","R", "SSB0", "wa", "N", "E3"))
+#2 model candidates
+m1 = gam(R ~ te(SSB0, wa, k = 4), data = newdata)
+m2 = gam(R ~ te(SSB0, wa, k = 4) +  te(N, E3, k = 4) , data = newdata)
+
+newdata$pred_m1 = predict(m1)
+newdata$pred_m2 = predict(m2)
+newdata$oos_R1 = NA
+newdata$oos_R2 = NA
+
+newdata$corr1 = NA
+newdata$corr2 = NA
+
+for(i in 1:55){
+  
+  # train new models leaving out year i
+  m1 = gam(R ~ te(SSB0, wa, k = 4), data = newdata[-i,]) 
+  m2 = gam(R ~ te(SSB0, wa, k = 4) +  te(N, E3, k = 4) , data = newdata[-i,])
+  
+  #Predict R for all years, incl the year that was left out ("out of sample prediction")
+  pred1 = predict(m1, newdata = newdata)  
+  pred2 = predict(m2, newdata = newdata)
+  
+  newdata$oos_R1[i] = pred1[i]
+  newdata$oos_R2[i] = pred2[i]
+  
+  newdata$corr1[i] = cor(newdata$pred_m1, pred1)
+  newdata$corr2[i] = cor(newdata$pred_m2, pred2)
+  }
+
+range(newdata$corr1)
+range(newdata$corr2)
+
+plot(corr1 ~ year, data = newdata)
+plot(corr2 ~ year, data = newdata)
+
+#Influential years:
+newdata$year[which(newdata$corr2 < 0.9)]
+#1982, 2006
+
+#Which model had better out of sample predictionn skill:
+summary(lm(R~oos_R1, data = newdata))#0.55
+summary(lm(R~oos_R2, data = newdata))#0.16
+
+par(mfrow = c(3,1))
+plot(R ~ year, data = newdata, pch = 16)
+lines(R~year, data = newdata)
+lines(oos_R1~year, data = newdata, col = 2)
+lines(oos_R2~year, data= newdata, col = 3)
+
+newdata$corr1[which(newdata$year %in% c(1982,2006))] # these 2 years seemed to be influential only when model included te(N, E3) term
