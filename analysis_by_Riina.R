@@ -122,8 +122,7 @@ newdata$corr1[which(newdata$year %in% c(1982,2006))] # these 2 years seemed to b
 
 
 #Test whether the correlation between R and SSB0 depends on the mean level of SSB0
-if(T){
-  type = "chronological" # alternative: "chronological"
+if(T){type = "chronological"} # alternative: "chronological" #lisasin siia } juurde, muidu jookseb kinni (Heli)
 
 if(type=="SSB0"){newdata = newdata[order(newdata$SSB0),]}else{newdata = newdata[order(newdata$year),]}
 if(type=="SSB0"){xlabel = "Mean SSB"}else{xlabel = "Middle year"}
@@ -155,8 +154,7 @@ for(i in 1:41){
   m = lm(R ~ wa, data = newdata[idx,])
   slope[i] = summary(m)$coefficients[2,1]
   p[i] = summary(m)$coefficients[2,4]
-  meanWA[i] = round(mean(newdata$wa[idx]), digits=2)
-}
+  meanWA[i] = round(mean(newdata$wa[idx]), digits=2)}
 
 plot(slope ~ meanSSB, xlab = xlabel, ylab = "Slope of lm(R ~ wa)")
 idx = which(p<0.05)
@@ -164,7 +162,7 @@ points(slope[idx]~meanSSB[idx], pch = 16)
 abline(h = 0, lwd = 0.5)
 mtext(" b)", side = 3, adj = 0, line = -1.5, cex = 0.9)
 par(new=T)
-plot(meanWA ~ meanSSB, type = "lines", col = grey(0.5), axes = F, ylab = "", xlab = "")
+plot(meanWA ~ meanSSB, type = "line", col = grey(0.5), axes = F, ylab = "", xlab = "")
 axis(4);mtext("Mean wa", side = 4,  line = 1.5, cex = 0.8)
 
 
@@ -185,7 +183,7 @@ points(slope[idx]~meanSSB[idx], pch = 16)
 abline(h = 0, lwd = 0.5)
 mtext(" c)", side = 3, adj = 0, line = -1.5, cex = 0.9)
 par(new=T)
-plot(meanN ~ meanSSB, type = "lines", col = grey(0.5), axes = F, ylab = "", xlab = "")
+plot(meanN ~ meanSSB, type = "line", col = grey(0.5), axes = F, ylab = "", xlab = "")
 axis(4);mtext("Mean N", side = 4,  line = 1.5, cex = 0.8)
 
 #E1
@@ -205,7 +203,7 @@ points(slope[idx]~meanSSB[idx], pch = 16)
 abline(h = 0, lwd = 0.5)
 mtext(" d)", side = 3, adj = 0, line = -1.5, cex = 0.9)
 par(new=T)
-plot(meanN ~ meanSSB, type = "lines", col = grey(0.5), axes = F, ylab = "", xlab = "")
+plot(meanN ~ meanSSB, type = "line", col = grey(0.5), axes = F, ylab = "", xlab = "")
 axis(4);mtext("Mean E1", side = 4,  line = 1.5, cex = 0.8)
 
 #E2
@@ -225,7 +223,7 @@ points(slope[idx]~meanSSB[idx], pch = 16)
 abline(h = 0, lwd = 0.5)
 mtext(" e)", side = 3, adj = 0, line = -1.5, cex = 0.9)
 par(new=T)
-plot(meanE2 ~ meanSSB, type = "lines", col = grey(0.5), axes = F, ylab = "", xlab = "")
+plot(meanE2 ~ meanSSB, type = "line", col = grey(0.5), axes = F, ylab = "", xlab = "")
 axis(4);mtext("Mean E2", side = 4,  line = 1.5, cex = 0.8)
 
 
@@ -246,6 +244,6 @@ points(slope[idx]~meanSSB[idx], pch = 16)
 abline(h = 0, lwd = 0.5)
 mtext(" f)", side = 3, adj = 0, line = -1.5, cex = 0.9)
 par(new=T)
-plot(meanE3 ~ meanSSB, type = "lines", col = grey(0.5), axes = F, ylab = "", xlab = "")
+plot(meanE3 ~ meanSSB, type = "line", col = grey(0.5), axes = F, ylab = "", xlab = "")
 axis(4);mtext("Mean E3", side = 4,  line = 1.5, cex = 0.8)
-}
+#} üleliigne?
