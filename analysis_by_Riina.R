@@ -122,7 +122,7 @@ newdata$corr1[which(newdata$year %in% c(1982,2006))] # these 2 years seemed to b
 
 
 #Test whether the correlation between R and SSB0 depends on the mean level of SSB0
-if(T){type = "chronological"} # alternative: "chronological" #lisasin siia } juurde, muidu jookseb kinni (Heli)
+type = "chronological" # alternative: "chronological" #lisasin siia } juurde, muidu jookseb kinni (Heli)
 
 if(type=="SSB0"){newdata = newdata[order(newdata$SSB0),]}else{newdata = newdata[order(newdata$year),]}
 if(type=="SSB0"){xlabel = "Mean SSB"}else{xlabel = "Middle year"}
@@ -246,4 +246,4 @@ mtext(" f)", side = 3, adj = 0, line = -1.5, cex = 0.9)
 par(new=T)
 plot(meanE3 ~ meanSSB, type = "line", col = grey(0.5), axes = F, ylab = "", xlab = "")
 axis(4);mtext("Mean E3", side = 4,  line = 1.5, cex = 0.8)
-#} üleliigne?
+
