@@ -145,7 +145,7 @@ points(slope[idx]~meanSSB[idx], pch = 16)
 abline(h = 0, lwd = 0.5)
 mtext(" a)", side = 3, adj = 0, line = -1.5, cex = 0.9)
 par(new=T)
-plot(newdata$SSB ~ newdata$year, type = "line", col = grey(0.5), axes = F, ylab = "", xlab = "")
+plot(newdata$SSB0 ~ newdata$year, type = "line", col = grey(0.5), axes = F, ylab = "", xlab = "")
 axis(4);mtext("Mean SSB", side = 4,  line = 1.5, cex = 0.8, col = grey(0.5))
 
 #WA
