@@ -6,11 +6,6 @@ load("consolidated_herring.RData")
 
 #Kasutame alguses ainult neid ridu kus koik muutujad olemas
 d = data[which(data$complete == "yes"),]
-
-#Kas toidu arengustaadiumid on omavahel seotud?
-pairs(d[,c(5:8)])
-pairs(d[,c(9:12)]) #Avaosas enam mitte nii väga
-
 d = d[which(d$year %in% c(1957:2015)),]
 
 d$N[which(d$year == 2002)] = mean(d$N[which(d$year %in% c(2001,2003))])
@@ -20,23 +15,18 @@ d$E1[which(d$year == 1986)] = mean(d$E1[which(d$year %in% c(1985,1986, 1987))])
 #Aegread
 
 par(mfrow = c(3, 2), tck=-0.02,mar=c(2.5,2.5,2.5,2.5), mgp = c(1.3,0.3,0))
-
 plot(d$E1 ~ d$year, ylab=expression(paste("Abudance (log ind. ",m**-2,")")), xlab="Year", pch = 16)
 lines(d$E1 ~ d$year)
 mtext("E1", side=3, adj=0, cex= 0.6)
-
 plot(d$E2 ~ d$year, ylab=expression(paste("Abudance (log ind. ",m**-2,")")), xlab="Year", pch = 16)
 lines(d$E2 ~ d$year)
 mtext("E2", side=3, adj=0, cex= 0.6)
-
 plot(d$E3 ~ d$year, ylab=expression(paste("Abudance (log ind. ",m**-2,")")), xlab="Year", pch = 16)
 lines(d$E3 ~ d$year)
 mtext("E3", side=3, adj=0, cex= 0.6)
-
 plot(d$N ~ d$year, ylab=expression(paste("Abudance (log ind. ",m**-2,")")), xlab="Year", pch = 16)
 lines(d$N ~ d$year)
 mtext("N", side=3, adj=0, cex= 0.6)
-
 plot(d$wa ~ d$year, ylab="winter severity", xlab="Year", pch = 16)
 lines(d$wa ~ d$year)
 mtext("wa", side=3, adj=0, cex= 0.6)
@@ -51,18 +41,98 @@ summary(gam(R ~ te(E2, SSB0, k = 4), data = d))#0.23
 summary(gam(R ~ te(E3, SSB0, k = 4), data = d))#0.23
 summary(gam(R ~ te(wa, SSB0, k = 4), data = d))#0.39# best one!
 
+#Create 2D image of the model
+library(colorRamps)
+var = d$R
+SSB0 = d$SSB0
+wa = d$wa
+m = gam(var ~ te(SSB0, wa))
+SSB0 = seq(min(d$SSB0), max(d$SSB0), length.out = 100)
+wa = seq(min(d$wa), max(d$wa), length.out = 100)
+predicted = matrix(ncol=length(SSB0),nrow = length(wa))
+for(i in 1:length(wa)){ 
+  new.data = data.frame(SSB0,wa[i])
+  names(new.data)<-c("SSB0","wa")
+  pred = predict.gam(m, newdata = new.data)
+  predicted[,i] = pred}
+
+par(mfrow = c(1,1))
+image(predicted,col=matlab.like(20),axes=F , xlab="Winter harshness", ylab = "SSB")
+contour(predicted,levels = c(1000,1500,2000,2500,3000,3500),add=T)
+
+labels_wa = as.numeric(c(round(quantile(wa, c(0.2,0.4,0.6,0.8)), digits = 0)))
+labels_SSB = as.numeric(c(round(quantile(SSB0, c(0.2,0.4,0.6,0.8)), digits = 0)))
+
+axis(1, at = c(0.2,0.4,0.6,0.8), labels = labels_wa)
+axis(2, at = c(0.2,0.4,0.6,0.8), labels = labels_SSB)
+
+
+
+
 #Step2
 summary(gam(R ~ te(wa, SSB0, k = 4) + te(N, SSB0, k = 4), data = d))#0.42, marignally sign.
 summary(gam(R ~ te(wa, SSB0, k = 4) + te(E1, SSB0, k = 4), data = d))#NS
+summary(gam(R ~ te(wa, SSB0, k = 4) + te(E2, SSB0, k = 4), data = d))#NS
 summary(gam(R ~ te(wa, SSB0, k = 4) + te(E3, SSB0, k = 4), data = d))#NS
 
 #Step3: food in interaction with wa
-summary(gam(R ~ te(wa, SSB0, k = 4) + te(N, wa, k = 4), data = d))#NA
+summary(gam(R ~ te(wa, SSB0, k = 4) + te(N, wa, k = 4), data = d))#NS
 summary(gam(R ~ te(wa, SSB0, k = 4) + te(E1, wa, k = 4), data = d))#NS
-summary(gam(R ~ te(wa, SSB0, k = 4) + te(E3, wa, k = 4), data = d))#Rsq adj 0.49 (from 0.39), but te(E3,wa) is only marginally sign
+summary(gam(R ~ te(wa, SSB0, k = 4) + te(E2, wa, k = 4), data = d))#NS
+summary(gam(R ~ te(wa, SSB0, k = 4) + te(E3, wa, k = 4), data = d))#NS
 
 #Step 4: interaction between N and E3
-summary(gam(R ~ te(wa, SSB0, k = 4) + te(E3, N, k = 4), data = d))#Rsq adj 0.49 (from 0.39), but te(E3,N) is only marginally significant (0.07)
+summary(gam(R ~ te(wa, SSB0, k = 4) + te(N, E3, k = 4), data = d))#Rsq adj 0.49 (from 0.39), but te(E3,N) is only marginally significant (0.07)
+
+#Create 2D images of te(wa, SSB0) and te(N, E3)
+var = d$R
+SSB0 = d$SSB0
+wa = d$wa
+N = d$N
+E3 = d$E3
+m = gam(var ~ te(SSB0, wa) + te(N, E3))
+SSB0 = seq(min(SSB0), max(SSB0), length.out = 100)
+wa = seq(min(wa), max(wa), length.out = 100)
+predicted = matrix(ncol=length(SSB0),nrow = length(wa))
+
+for(i in 1:length(wa)){ 
+  new.data = data.frame(SSB0,wa[i], mean(N), mean(E3))
+  names(new.data)<-c("SSB0","wa", "N", "E3")
+  pred = predict.gam(m, newdata = new.data)
+  predicted[,i] = pred}
+
+par(mfrow = c(2,1))
+image(predicted,col=matlab.like(20),axes=F , xlab="Winter harshness", ylab = "SSB")
+contour(predicted,levels = c(1000,1500,2000,2500,3000,3500),add=T)
+labels_wa = as.numeric(c(round(quantile(wa, c(0.2,0.4,0.6,0.8)), digits = 0)))
+labels_SSB = as.numeric(c(round(quantile(SSB0, c(0.2,0.4,0.6,0.8)), digits = 0)))
+axis(1, at = c(0.2,0.4,0.6,0.8), labels = labels_wa)
+axis(2, at = c(0.2,0.4,0.6,0.8), labels = labels_SSB)
+
+var = d$R
+SSB0 = d$SSB0
+wa = d$wa
+N = d$N
+E3 = d$E3
+m = gam(var ~ te(SSB0, wa) + te(N, E3))
+N = seq(min(N), max(N), length.out = 100)
+E3 = seq(min(E3), max(E3), length.out = 100)
+predicted = matrix(ncol=length(N),nrow = length(E3))
+
+for(i in 1:length(E3)){ 
+  new.data = data.frame(N,E3[i], mean(SSB0), mean(wa))
+  names(new.data)<-c("N", "E3","SSB0","wa")
+  pred = predict.gam(m, newdata = new.data)
+  predicted[,i] = pred}
+
+image(predicted,col=matlab.like(20),axes=F , xlab="E3", ylab = "N")
+contour(predicted,levels = c(1000,1500,2000,2500,3000,3500),add=T)
+labels_N = as.numeric(c(round(quantile(N, c(0.2,0.4,0.6,0.8)), digits = 0)))
+labels_E3 = as.numeric(c(round(quantile(E3, c(0.2,0.4,0.6,0.8)), digits = 0)))
+axis(1, at = c(0.2,0.4,0.6,0.8), labels = labels_E3)
+axis(2, at = c(0.2,0.4,0.6,0.8), labels = labels_N)
+
+
 
 #Out of sample prediction ability and influential years
 #Aim of next step is to identify which model is the best in out of sample prediction category, and whether there are some years that seem to affect the model most
@@ -76,12 +146,10 @@ newdata$pred_m1 = predict(m1)
 newdata$pred_m2 = predict(m2)
 newdata$oos_R1 = NA
 newdata$oos_R2 = NA
-
 newdata$corr1 = NA
 newdata$corr2 = NA
 
 for(i in 1:55){
-  
   # train new models leaving out year i
   m1 = gam(R ~ te(SSB0, wa, k = 4), data = newdata[-i,]) 
   m2 = gam(R ~ te(SSB0, wa, k = 4) +  te(N, E3, k = 4) , data = newdata[-i,])
@@ -95,40 +163,37 @@ for(i in 1:55){
   
   newdata$corr1[i] = cor(newdata$pred_m1, pred1)
   newdata$corr2[i] = cor(newdata$pred_m2, pred2)
-  }
+}
+
+#Which model had better out of sample predictionn skill:
+cor(newdata$R, newdata$oos_R1)
+cor(newdata$R, newdata$oos_R2)
 
 range(newdata$corr1)
 range(newdata$corr2)
 
-plot(corr1 ~ year, data = newdata)
-plot(corr2 ~ year, data = newdata)
+plot(corr1 ~ year, ylim = c(0.82,1), data = newdata, main = "Model 1", xlab = "Year", ylab = "Correlation with full data model")
+plot(corr2 ~ year,ylim = c(0.82,1), data = newdata, main = "Model 2", xlab = "Year", ylab = "Correlation with full data model")
 
 #Influential years:
 newdata$year[which(newdata$corr2 < 0.9)]
 #1982, 2006
 
-#Which model had better out of sample predictionn skill:
-summary(lm(R~oos_R1, data = newdata))#0.55
-summary(lm(R~oos_R2, data = newdata))#0.16
-
-par(mfrow = c(3,1))
+par(mfrow = c(1,1))
 plot(R ~ year, data = newdata, pch = 16)
 lines(R~year, data = newdata)
 lines(oos_R1~year, data = newdata, col = 2)
 lines(oos_R2~year, data= newdata, col = 3)
-
-newdata$corr1[which(newdata$year %in% c(1982,2006))] # these 2 years seemed to be influential only when model included te(N, E3) term
-
+text(c(1960,1960,1960), c(7000,6300,5600), labels = c("Observed", "Model 1", "Model 2"), col = c(1,2,3), pos = 4)
 
 
 #Test whether the correlation between R and SSB0 depends on the mean level of SSB0
 type = "chronological" # alternative: "chronological" #lisasin siia } juurde, muidu jookseb kinni (Heli)
-
 if(type=="SSB0"){newdata = newdata[order(newdata$SSB0),]}else{newdata = newdata[order(newdata$year),]}
 if(type=="SSB0"){xlabel = "Mean SSB"}else{xlabel = "Middle year"}
-  meanSSB = rep(NA,41)
- slope = rep(NA, 41)
- p = rep(NA, 41)
+meanSSB = rep(NA,41)
+slope = rep(NA, 41)
+p = rep(NA, 41)
 for(i in 1:41){
   idx = c(i: (i+14))
   m = lm(R ~ SSB0, data = newdata[idx,])
@@ -249,4 +314,3 @@ mtext(" f)", side = 3, adj = 0, line = -1.5, cex = 0.9)
 par(new=T)
 plot(meanE3 ~ meanSSB, type = "line", col = grey(0.5), axes = F, ylab = "", xlab = "")
 axis(4);mtext("Mean E3", side = 4,  line = 1.5, cex = 0.8)
-
