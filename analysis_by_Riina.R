@@ -95,21 +95,37 @@ axis(1, at = c(0.2,0.4,0.6,0.8), labels = labels_wa)
 axis(2, at = c(0.2,0.4,0.6,0.8), labels = labels_SSB)
 
 
-
 #Step2
-summary(gam(R ~ te(wa, SSB, k = 4) + te(N, SSB, k = 4), data = d))#0.42, marignally sign.
-summary(gam(R ~ te(wa, SSB, k = 4) + te(E1, SSB, k = 4), data = d))#NS
-summary(gam(R ~ te(wa, SSB, k = 4) + te(E2, SSB, k = 4), data = d))#NS
-summary(gam(R ~ te(wa, SSB, k = 4) + te(E3, SSB, k = 4), data = d))#NS
+#summary(gam(R ~ te(wa, SSB, k = 4) + te(N, SSB, k = 4), data = d))#0.42, marignally sign.
+#summary(gam(R ~ te(wa, SSB, k = 4) + te(E1, SSB, k = 4), data = d))#NS
+#summary(gam(R ~ te(wa, SSB, k = 4) + te(E2, SSB, k = 4), data = d))#NS
+#summary(gam(R ~ te(wa, SSB, k = 4) + te(E3, SSB, k = 4), data = d))#NS
+summary(gam(R ~ te(wa, SSB, k = 4) + te(open_E1, SSB, k = 4), data = d))#S 0.437
+summary(gam(R ~ te(wa, SSB, k = 4) + te(open_E2, SSB, k = 4), data = d))#S 0.52
+summary(gam(R ~ te(wa, SSB, k = 4) + te(open_E3, SSB, k = 4), data = d))#NS
+summary(gam(R ~ te(wa, SSB, k = 4) + te(open_N, SSB, k = 4), data = d))
+summary(gam(R ~ te(wa, SSB, k = 4) + te(sun, SSB, k = 4), data = d))#S 0.498
+summary(gam(R ~ te(wa, SSB, k = 4) + te(may_june, SSB, k = 4), data = d))#NS
 
 #Step3: food in interaction with wa
-summary(gam(R ~ te(wa, SSB, k = 4) + te(N, wa, k = 4), data = d))#NS
-summary(gam(R ~ te(wa, SSB, k = 4) + te(E1, wa, k = 4), data = d))#NS
-summary(gam(R ~ te(wa, SSB, k = 4) + te(E2, wa, k = 4), data = d))#NS
-summary(gam(R ~ te(wa, SSB, k = 4) + te(E3, wa, k = 4), data = d))#NS
+#summary(gam(R ~ te(wa, SSB, k = 4) + te(N, wa, k = 4), data = d))#NS
+#summary(gam(R ~ te(wa, SSB, k = 4) + te(E1, wa, k = 4), data = d))#NS
+#summary(gam(R ~ te(wa, SSB, k = 4) + te(E2, wa, k = 4), data = d))#NS
+#summary(gam(R ~ te(wa, SSB, k = 4) + te(E3, wa, k = 4), data = d))#NS
+summary(gam(R ~ te(wa, SSB, k = 4) + te(open_N, wa, k = 4), data = d))#NS
+summary(gam(R ~ te(wa, SSB, k = 4) + te(open_E1, wa, k = 4), data = d))#NS
+summary(gam(R ~ te(wa, SSB, k = 4) + te(open_E2, wa, k = 4), data = d))#S 0.499
+summary(gam(R ~ te(wa, SSB, k = 4) + te(open_E3, wa, k = 4), data = d))#NS
+summary(gam(R ~ te(wa, SSB, k = 4) + te(sun, wa, k = 4), data = d))#S 0.51
+summary(gam(R ~ te(wa, SSB, k = 4) + te(may_june, wa, k = 4), data = d))#NS
+
 
 #Step 4: interaction between N and E3
-summary(gam(R ~ te(wa, SSB, k = 4) + te(N, E3, k = 4), data = d))#Rsq adj 0.49 (from 0.39), but te(E3,N) is only marginally significant (0.07)
+#summary(gam(R ~ te(wa, SSB, k = 4) + te(N, E3, k = 4), data = d))#Rsq adj 0.49 (from 0.39), but te(E3,N) is only marginally significant (0.07)
+#jätkan -Heli
+
+
+
 
 #Create 2D images of te(wa, SSB0) and te(N, E3)
 var = d$R
@@ -325,7 +341,7 @@ points(slope[idx]~meanSSB[idx], pch = 16)
 abline(h = 0, lwd = 0.5)
 mtext(" d)", side = 3, adj = 0, line = -1.5, cex = 0.9)
 par(new=T)
-plot(meanN ~ meanSSB, type = "line", col = grey(0.5), axes = F, ylab = "", xlab = "")
+plot(meanE1 ~ meanSSB, type = "line", col = grey(0.5), axes = F, ylab = "", xlab = "")
 axis(4);mtext("Mean E1", side = 4,  line = 1.5, cex = 0.8)
 
 #E2
@@ -369,3 +385,179 @@ par(new=T)
 plot(meanE3 ~ meanSSB, type = "line", col = grey(0.5), axes = F, ylab = "", xlab = "")
 axis(4);mtext("Mean E3", side = 4,  line = 1.5, cex = 0.8)
 }
+
+
+##Open
+newdata = subset(d, select = c("year","R", "SSB", "wa", "open_N","open_E1","open_E2","open_E3", "sun", "may_june"))
+
+
+if(TRUE){
+  #Test whether the correlation between R and SSB depends on the mean level of SSB
+  type = "SSB" # alternative: "chronological" #lisasin siia } juurde, muidu jookseb kinni (Heli)
+  if(type=="SSB"){newdata = newdata[order(newdata$SSB),]}else{newdata = newdata[order(newdata$year),]}
+  if(type=="SSB"){xlabel = "Mean SSB"}else{xlabel = "Middle year"}
+  meanSSB = rep(NA,39)
+  slope = rep(NA, 39)
+  p = rep(NA, 39)
+  for(i in 1:39){
+    idx = c(i: (i+14))
+    m = lm(R ~ SSB, data = newdata[idx,])
+    slope[i] = summary(m)$coefficients[2,1]
+    p[i] = summary(m)$coefficients[2,4]
+    if(type=="SSB"){meanSSB[i] = round(mean(newdata$SSB[idx]), digits=0)}else{meanSSB[i] = round(mean(newdata$year[idx]), digits=0)}
+  }
+  
+  
+  par(mfrow = c(3, 3), tck=-0.02,mar=c(2.5,2.5,2.5,2.8), mgp = c(1.3,0.3,0))
+  plot(slope ~ meanSSB, xlab = xlabel, ylab = "Slope of lm(R ~ SSB)")
+  idx = which(p<0.05)
+  points(slope[idx]~meanSSB[idx], pch = 16)
+  abline(h = 0, lwd = 0.5)
+  mtext(" a)", side = 3, adj = 0, line = -1.5, cex = 0.9)
+  #par(new=T)
+  #plot(newdata$SSB ~ newdata$year, type = "line", col = grey(0.5), axes = F, ylab = "", xlab = "")
+  #axis(4);mtext("Mean SSB", side = 4,  line = 1.5, cex = 0.8, col = grey(0.5))
+  
+
+  #N
+  slope = rep(NA, 39)
+  p = rep(NA, 39)
+  meanN = rep(NA,39)
+  for(i in 1:39){
+    idx = c(i: (i+14))
+    m = lm(R ~ open_N, data = newdata[idx,])
+    slope[i] = summary(m)$coefficients[2,1]
+    p[i] = summary(m)$coefficients[2,4]
+    meanN[i] = round(mean(newdata$open_N[idx]), digits=2)}
+  
+  plot(slope ~ meanSSB, xlab = xlabel, ylab = "Slope of lm(R ~ O_N)")
+  idx = which(p<0.05)
+  points(slope[idx]~meanSSB[idx], pch = 16)
+  abline(h = 0, lwd = 0.5)
+  mtext(" b)", side = 3, adj = 0, line = -1.5, cex = 0.9)
+  par(new=T)
+  plot(meanN ~ meanSSB, type = "line", col = grey(0.5), axes = F, ylab = "", xlab = "")
+  axis(4);mtext("Mean N", side = 4,  line = 1.5, cex = 0.8)
+  
+  #E1
+  slope = rep(NA, 39)
+  p = rep(NA, 39)
+  meanE1 = rep(NA,39)
+  for(i in 1:39){
+    idx = c(i: (i+14))
+    m = lm(R ~ open_E1, data = newdata[idx,])
+    slope[i] = summary(m)$coefficients[2,1]
+    p[i] = summary(m)$coefficients[2,4]
+    meanE1[i] = round(mean(newdata$open_E1[idx]), digits=2)}
+  
+  plot(slope ~ meanSSB, xlab = xlabel, ylab = "Slope of lm(R ~ O_E1)")
+  idx = which(p<0.05)
+  points(slope[idx]~meanSSB[idx], pch = 16)
+  abline(h = 0, lwd = 0.5)
+  mtext(" c)", side = 3, adj = 0, line = -1.5, cex = 0.9)
+  par(new=T)
+  plot(meanE1 ~ meanSSB, type = "line", col = grey(0.5), axes = F, ylab = "", xlab = "")
+  axis(4);mtext("Mean E1", side = 4,  line = 1.5, cex = 0.8)
+  
+  #E2
+  slope = rep(NA, 39)
+  p = rep(NA, 39)
+  meanE2 = rep(NA,39)
+  for(i in 1:39){
+    idx = c(i: (i+14))
+    m = lm(R ~ open_E2, data = newdata[idx,])
+    slope[i] = summary(m)$coefficients[2,1]
+    p[i] = summary(m)$coefficients[2,4]
+    meanE2[i] = round(mean(newdata$open_E2[idx]), digits=2)}
+  
+  plot(slope ~ meanSSB, xlab = xlabel, ylab = "Slope of lm(R ~ O_E2)")
+  idx = which(p<0.05)
+  points(slope[idx]~meanSSB[idx], pch = 16)
+  abline(h = 0, lwd = 0.5)
+  mtext(" d)", side = 3, adj = 0, line = -1.5, cex = 0.9)
+  par(new=T)
+  plot(meanE2 ~ meanSSB, type = "line", col = grey(0.5), axes = F, ylab = "", xlab = "")
+  axis(4);mtext("Mean E2", side = 4,  line = 1.5, cex = 0.8)
+  
+  
+  #E3
+  slope = rep(NA, 39)
+  p = rep(NA, 39)
+  meanE3 = rep(NA,39)
+  for(i in 1:39){
+    idx = c(i: (i+14))
+    m = lm(R ~ open_E3, data = newdata[idx,])
+    slope[i] = summary(m)$coefficients[2,1]
+    p[i] = summary(m)$coefficients[2,4]
+    meanE3[i] = round(mean(newdata$open_E3[idx]), digits=2)}
+  
+  plot(slope ~ meanSSB, xlab = xlabel, ylab = "Slope of lm(R ~ O_E3)")
+  idx = which(p<0.05)
+  points(slope[idx]~meanSSB[idx], pch = 16)
+  abline(h = 0, lwd = 0.5)
+  mtext(" e)", side = 3, adj = 0, line = -1.5, cex = 0.9)
+  par(new=T)
+  plot(meanE3 ~ meanSSB, type = "line", col = grey(0.5), axes = F, ylab = "", xlab = "")
+  axis(4);mtext("Mean E3", side = 4,  line = 1.5, cex = 0.8)
+  
+  #sun
+  slope = rep(NA, 39)
+  p = rep(NA, 39)
+  mean_sun = rep(NA,39)
+  for(i in 1:39){
+    idx = c(i: (i+14))
+    m = lm(R ~ sun, data = newdata[idx,])
+    slope[i] = summary(m)$coefficients[2,1]
+    p[i] = summary(m)$coefficients[2,4]
+    mean_sun[i] = round(mean(newdata$sun[idx]), digits=2)}
+  
+  plot(slope ~ meanSSB, xlab = xlabel, ylab = "Slope of lm(R ~ sun)")
+  idx = which(p<0.05)
+  points(slope[idx]~meanSSB[idx], pch = 16)
+  abline(h = 0, lwd = 0.5)
+  mtext(" f)", side = 3, adj = 0, line = -1.5, cex = 0.9)
+  par(new=T)
+  plot(mean_sun ~ meanSSB, type = "line", col = grey(0.5), axes = F, ylab = "", xlab = "")
+  axis(4);mtext("Mean sun", side = 4,  line = 1.5, cex = 0.8)
+  
+  #may_june
+  slope = rep(NA, 39)
+  p = rep(NA, 39)
+  mean_summer = rep(NA,39)
+  for(i in 1:39){
+    idx = c(i: (i+14))
+    m = lm(R ~ may_june, data = newdata[idx,])
+    slope[i] = summary(m)$coefficients[2,1]
+    p[i] = summary(m)$coefficients[2,4]
+    mean_summer[i] = round(mean(newdata$may_june[idx]), digits=2)}
+  
+  plot(slope ~ meanSSB, xlab = xlabel, ylab = "Slope of lm(R ~ may_june)")
+  idx = which(p<0.05)
+  points(slope[idx]~meanSSB[idx], pch = 16)
+  abline(h = 0, lwd = 0.5)
+  mtext(" g)", side = 3, adj = 0, line = -1.5, cex = 0.9)
+  par(new=T)
+  plot(mean_summer ~ meanSSB, type = "line", col = grey(0.5), axes = F, ylab = "", xlab = "")
+  axis(4);mtext("Mean temperature", side = 4,  line = 1.5, cex = 0.8)
+  
+  #WA
+  slope = rep(NA, 39)
+  p = rep(NA, 39)
+  meanWA = rep(NA,39)
+  for(i in 1:39){
+    idx = c(i: (i+14))
+    m = lm(R ~ wa, data = newdata[idx,])
+    slope[i] = summary(m)$coefficients[2,1]
+    p[i] = summary(m)$coefficients[2,4]
+    meanWA[i] = round(mean(newdata$wa[idx]), digits=2)}
+  
+  plot(slope ~ meanSSB, xlab = xlabel, ylab = "Slope of lm(R ~ wa)")
+  idx = which(p<0.05)
+  points(slope[idx]~meanSSB[idx], pch = 16)
+  abline(h = 0, lwd = 0.5)
+  mtext(" h)", side = 3, adj = 0, line = -1.5, cex = 0.9)
+  par(new=T)
+  plot(meanWA ~ meanSSB, type = "line", col = grey(0.5), axes = F, ylab = "", xlab = "")
+  axis(4);mtext("Mean wa", side = 4,  line = 1.5, cex = 0.8)
+}
+
