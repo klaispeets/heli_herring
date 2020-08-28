@@ -5,39 +5,41 @@ if(TRUE){
   user = "riina" # sina kirjuta siia "heli", siis laeb sama skript sul ka õigest kohast andmed
   
   if(user == "heli"){load("~/Desktop/HeliWork/raim/GOR herring R analyses/revision_1/script_and_data/ices.RData")}else{load("/Users/riina82/work/Heli/heli herring/ices.RData")}
+  
   #Andmed drives https://drive.google.com/drive/folders/1bzRMKy5LHeTGspjqNMaGid1yPtI7Garz?usp=sharing
   
-  ices=ices[which(ices$year %in% c(1957:2016)),]
-  idx=which(ices$year %in% c(1977:2016))
+  ices = ices[which(ices$year %in% c(1957:2016)),]
+  idx = which(ices$year %in% c(1977:2016))
   
   #andmete ühtlustamine
   ices$R[idx]=ices$R[idx]/1000
   ices$SSB[idx]=ices$SSB[idx]/1000
   
   #SUN
-  #if(user=="riina"){load("/Users/riina82/work/Heli/heli herring/sun.RData")}else{load("~/Desktop/HeliWork/raim/GOR herring R analyses/revision_1/script_and_data/sun.RData")} #Monthly sun hours data from 1961-2013, table "data"
-  #if(user=="riina"){load("/Users/riina82/work/Heli/heli herring/daily_sun_hours.RData")}else{load("~/Desktop/HeliWork/raim/GOR herring R analyses/revision_1/script_and_data/daily_sun_hours.RData")}
+  if(user=="riina"){load("/Users/riina82/work/Heli/heli herring/sun.RData")}else{load("~/Desktop/HeliWork/raim/GOR herring R analyses/revision_1/script_and_data/sun.RData")} #Monthly sun hours data from 1961-2013, table "data"
+  if(user=="riina"){load("/Users/riina82/work/Heli/heli herring/daily_sun_hours.RData")}else{load("~/Desktop/HeliWork/raim/GOR herring R analyses/revision_1/script_and_data/daily_sun_hours.RData")}
+  
   # table "sun", newer daily data from 1999 - 2016 - recalculate to monthly sums, and then combine with earlier data
   #sun andmed kõige lähedasemad on Pärnu, teised on Saaremaa andmed. 
   
-  #y=unique(sun$year)
-  #for (i in 1:length(y)){
-  #  set = sun[which(sun$year == y[i] & sun$location == "parnu"),c(3:14)]
-  #  x=apply(set, 2, sum, na.rm = T)
-  #  if(i == 1){monthly = t(data.frame(x))}else{monthly = rbind(monthly, t(data.frame(x)))}
-  #}
+  y = unique(sun$year)
+  for (i in 1:length(y)){
+    set = sun[which(sun$year == y[i] & sun$location == "parnu"),c(3:14)]
+    x=apply(set, 2, sum, na.rm = T)
+    if(i == 1){monthly = t(data.frame(x))}else{monthly = rbind(monthly, t(data.frame(x)))}
+  }
   
-  #monthly=data.frame(monthly)
-  #monthly$annual=as.numeric(apply(monthly,1,sum))
-  #monthly=data.frame(y,monthly)
-  #names(monthly)=names(data)
-  #data=rbind(data,monthly[c(16:18),])
-  #data$June[which(is.na(data$June))]=mean(data$June[which(!is.na(data$June))])
-  #data$July[which(is.na(data$July))]=mean(data$July[which(!is.na(data$July))])
-  #annual=as.numeric(apply(data[,c(2:13)],1,sum))
-  #data$annual=annual
-  #sun=data$annual[match(ices$year,data$year)]
-  #ices$sun = sun
+  monthly=data.frame(monthly)
+  monthly$annual=as.numeric(apply(monthly,1,sum))
+  monthly=data.frame(y,monthly)
+  names(monthly)=names(data)
+  data=rbind(data,monthly[c(16:18),])
+  data$June[which(is.na(data$June))]=mean(data$June[which(!is.na(data$June))])
+  data$July[which(is.na(data$July))]=mean(data$July[which(!is.na(data$July))])
+  annual=as.numeric(apply(data[,c(2:13)],1,sum))
+  data$annual=annual
+  sun=data$annual[match(ices$year,data$year)]
+  ices$sun = sun
   
   final = ices
   final$Rl = NULL
@@ -180,7 +182,7 @@ if(TRUE){
   idx=which(SET$year %in% c(1957:2016))
   wa = tapply(SET$air_temp[idx], as.factor(SET$year[idx]), sum)
   final$wa=wa[match(final$year, names(wa))]
-  if(FALSE){
+  if(TRUE){
     if(user=="riina"){load("/Users/riina82/work/Heli/heli herring/Air_temp_Liivi laht.RData")}else{load("~/Desktop/HeliWork/raim/GOR herring R analyses/revision_1/script_and_data/Air_temp_Liivi laht.RData")}
     for(i in 3:14){
       set = data[,c(1,2,i,15)] 
@@ -190,18 +192,18 @@ if(TRUE){
       set$Date = as.Date(paste(set$year, set$day, set$month, sep = "-"), "%Y-%d-%m")
       if(i == 3){SET = set} else {SET = rbind(SET, set)}}
     
-    SET$year[which(SET$month %in% c(5, 6, 7, 8))] = SET$year[which(SET$month %in% c(5, 6, 7, 8))]
-    SET = SET[which(SET$station %in% c("kihnu") & SET$month %in% c(5, 6, 7, 8)),]
+    SET = SET[which(SET$station %in% c("kihnu") & SET$month %in% c(5, 6)),]
     idx=which(SET$month==5 & SET$year %in% c(1957:2016))
-    may = tapply(SET$air_temp[idx], as.factor(SET$year[idx]), mean)
-    idx=which(SET$month %in% c(6,7,8) & SET$year %in% c(1957:2016))
-    summer = tapply(SET$air_temp[idx], as.factor(SET$year[idx]), mean)
+    may_june = tapply(SET$air_temp[idx], as.factor(SET$year[idx]), mean, na.rm=T)
+    #idx=which(SET$month %in% c(6,7,8) & SET$year %in% c(1957:2016))
+    #summer = tapply(SET$air_temp[idx], as.factor(SET$year[idx]), mean)
+    final$may_june = may_june[match(final$year, names(may_june))]
   }
 }
 
+#Shift R one year earlier, so that the value of one year olds would be assigned to the year of actual birth
+final$R = c(final$R[2:nrow(final)], NA)
+final$complete = apply(is.na(final[,c(2:ncol(final)),]), 1, sum)
+final$complete = ifelse(final$complete==0, "yes", "no")
 
-library(clipr)
-write_clip(final)
-
-#I had to update only the E.affinis lines in the Pärnu bay:
-write_clip(subset(final, select = c("E1","E2","E3","N")))
+save(final, file = "consolidated_herring.RData")
