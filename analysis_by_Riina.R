@@ -14,7 +14,7 @@ d$E1[which(d$year == 1987)] = mean(d$E1[which(d$year %in% c(1986,1987,1988))])
 
 #Aegread
 
-par(mfrow = c(3, 2), tck=-0.02,mar=c(2.5,2.5,2.5,2.5), mgp = c(1.3,0.3,0))
+par(mfrow = c(3, 3), tck=-0.02,mar=c(2.5,2.5,2.5,2.5), mgp = c(1.3,0.3,0))
 plot(d$E1 ~ d$year, ylab=expression(paste("Abudance (log ind. ",m**-2,")")), xlab="Year", pch = 16)
 lines(d$E1 ~ d$year)
 mtext("E1", side=3, adj=0, cex= 0.6)
@@ -24,12 +24,33 @@ mtext("E2", side=3, adj=0, cex= 0.6)
 plot(d$E3 ~ d$year, ylab=expression(paste("Abudance (log ind. ",m**-2,")")), xlab="Year", pch = 16)
 lines(d$E3 ~ d$year)
 mtext("E3", side=3, adj=0, cex= 0.6)
+plot(d$open_E1 ~ d$year, ylab=expression(paste("Abudance (log ind. ",m**-2,")")), xlab="Year", pch = 16)
+lines(d$open_E1 ~ d$year)
+mtext("open_E1", side=3, adj=0, cex= 0.6)
+plot(d$open_E2 ~ d$year, ylab=expression(paste("Abudance (log ind. ",m**-2,")")), xlab="Year", pch = 16)
+lines(d$open_E2 ~ d$year)
+mtext("open_E2", side=3, adj=0, cex= 0.6)
+plot(d$open_E3 ~ d$year, ylab=expression(paste("Abudance (log ind. ",m**-2,")")), xlab="Year", pch = 16)
+lines(d$open_E3 ~ d$year)
+mtext("open_E3", side=3, adj=0, cex= 0.6)
 plot(d$N ~ d$year, ylab=expression(paste("Abudance (log ind. ",m**-2,")")), xlab="Year", pch = 16)
 lines(d$N ~ d$year)
 mtext("N", side=3, adj=0, cex= 0.6)
+plot(d$open_N ~ d$year, ylab=expression(paste("Abudance (log ind. ",m**-2,")")), xlab="Year", pch = 16)
+lines(d$open_N ~ d$year)
+mtext("open_N", side=3, adj=0, cex= 0.6)
+
+par(mfrow = c(1, 3), tck=-0.02,mar=c(2.5,2.5,2.5,2.5), mgp = c(1.3,0.3,0))
 plot(d$wa ~ d$year, ylab="winter severity", xlab="Year", pch = 16)
 lines(d$wa ~ d$year)
 mtext("wa", side=3, adj=0, cex= 0.6)
+plot(d$sun ~ d$year, ylab="sun hours", xlab="Year", pch = 16)
+lines(d$sun ~ d$year)
+mtext("sun", side=3, adj=0, cex= 0.6)
+plot(d$may_june ~ d$year, ylab="temperature", xlab="Year", pch = 16)
+lines(d$may_june ~ d$year)
+mtext("may_june temp", side=3, adj=0, cex= 0.6)
+
 
 
 #Let's try the GAM models with interaction (tensor product)
@@ -40,6 +61,13 @@ summary(gam(R ~ te(E1, SSB, k = 4), data = d))#0.245
 summary(gam(R ~ te(E2, SSB, k = 4), data = d))#0.23
 summary(gam(R ~ te(E3, SSB, k = 4), data = d))#0.23
 summary(gam(R ~ te(wa, SSB, k = 4), data = d))#0.39# best one!
+summary(gam(R ~ te(sun, SSB, k = 4), data = d))#0.305
+summary(gam(R ~ te(may_june, SSB, k = 4), data = d))#0.226
+summary(gam(R ~ te(open_N, SSB, k = 4), data = d))#0.237
+summary(gam(R ~ te(open_E1, SSB, k = 4), data = d))#0.412
+summary(gam(R ~ te(open_E2, SSB, k = 4), data = d))#0.512 #BEST!
+summary(gam(R ~ te(open_E3, SSB, k = 4), data = d))#0.264
+
 
 #Create 2D image of the model
 library(colorRamps)
