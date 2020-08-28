@@ -96,7 +96,6 @@ axis(2, at = c(0.2,0.4,0.6,0.8), labels = labels_SSB)
 
 
 
-
 #Step2
 summary(gam(R ~ te(wa, SSB, k = 4) + te(N, SSB, k = 4), data = d))#0.42, marignally sign.
 summary(gam(R ~ te(wa, SSB, k = 4) + te(E1, SSB, k = 4), data = d))#NS
@@ -159,6 +158,33 @@ labels_N = as.numeric(c(round(quantile(N, c(0.2,0.4,0.6,0.8)), digits = 0)))
 labels_E3 = as.numeric(c(round(quantile(E3, c(0.2,0.4,0.6,0.8)), digits = 0)))
 axis(1, at = c(0.2,0.4,0.6,0.8), labels = labels_E3)
 axis(2, at = c(0.2,0.4,0.6,0.8), labels = labels_N)
+
+#New_steps with open_E2
+
+#open_E2
+var = d$R
+SSB = d$SSB
+open_E2 = d$open_E2
+m = gam(var ~ te(SSB, open_E2))
+SSB = seq(min(d$SSB), max(d$SSB), length.out = 100)
+open_E2 = seq(min(d$open_E2), max(d$open_E2), length.out = 100)
+predicted = matrix(ncol=length(SSB),nrow = length(open_E2))
+for(i in 1:length(open_E2)){ 
+  new.data = data.frame(SSB,open_E2[i])
+  names(new.data)<-c("SSB","open_E2")
+  pred = predict.gam(m, newdata = new.data)
+  predicted[,i] = pred}
+
+par(mfrow = c(1,1))
+image(predicted,col=matlab.like(20),axes=F , xlab="open_E2", ylab = "SSB")
+contour(predicted,levels = c(1000,1500,2000,2500,3000,3500),add=T)
+
+labels_open_E2 = as.numeric(c(round(quantile(open_E2, c(0.2,0.4,0.6,0.8)), digits = 0)))
+labels_SSB = as.numeric(c(round(quantile(SSB, c(0.2,0.4,0.6,0.8)), digits = 0)))
+
+axis(1, at = c(0.2,0.4,0.6,0.8), labels = labels_open_E2)
+axis(2, at = c(0.2,0.4,0.6,0.8), labels = labels_SSB)
+
 
 
 
