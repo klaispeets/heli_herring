@@ -61,6 +61,7 @@ summary(gam(R ~ te(E1, SSB, k = 4), data = d))#0.245
 summary(gam(R ~ te(E2, SSB, k = 4), data = d))#0.23
 summary(gam(R ~ te(E3, SSB, k = 4), data = d))#0.23
 summary(gam(R ~ te(wa, SSB, k = 4), data = d))#0.39# best one!
+
 summary(gam(R ~ te(sun, SSB, k = 4), data = d))#0.305
 summary(gam(R ~ te(may_june, SSB, k = 4), data = d))#0.226
 summary(gam(R ~ te(open_N, SSB, k = 4), data = d))#0.237
@@ -103,7 +104,7 @@ axis(2, at = c(0.2,0.4,0.6,0.8), labels = labels_SSB)
 summary(gam(R ~ te(wa, SSB, k = 4) + te(open_E1, SSB, k = 4), data = d))#S 0.437
 summary(gam(R ~ te(wa, SSB, k = 4) + te(open_E2, SSB, k = 4), data = d))#S 0.52
 summary(gam(R ~ te(wa, SSB, k = 4) + te(open_E3, SSB, k = 4), data = d))#NS
-summary(gam(R ~ te(wa, SSB, k = 4) + te(open_N, SSB, k = 4), data = d))
+summary(gam(R ~ te(wa, SSB, k = 4) + te(open_N, SSB, k = 4), data = d)) #0.41 NS
 summary(gam(R ~ te(wa, SSB, k = 4) + te(sun, SSB, k = 4), data = d))#S 0.498
 summary(gam(R ~ te(wa, SSB, k = 4) + te(may_june, SSB, k = 4), data = d))#NS
 
@@ -122,7 +123,7 @@ summary(gam(R ~ te(wa, SSB, k = 4) + te(may_june, wa, k = 4), data = d))#NS
 
 #Step 4: interaction between N and E3
 #summary(gam(R ~ te(wa, SSB, k = 4) + te(N, E3, k = 4), data = d))#Rsq adj 0.49 (from 0.39), but te(E3,N) is only marginally significant (0.07)
-#jätkan -Heli
+
 
 
 
