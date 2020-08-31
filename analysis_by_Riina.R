@@ -128,7 +128,53 @@ summary(gam(R ~ te(wa, SSB, k = 4) + te(open_E2, open_N, k = 4), data = d))# S 0
 summary(gam(R ~ te(wa, SSB, k = 4) + te(open_E2, sun, k = 4), data = d)) #S 0.563
 summary(gam(R ~ te(wa, SSB, k = 4) + te(open_E2, may_june, k = 4), data = d))
 
+#Create 2D images of te(wa, SSB0) and te(sun, open_E2)
+var = d$R
+SSB = d$SSB
+wa = d$wa
+sun = d$sun
+E2 = d$open_E2
+m = gam(var ~ te(SSB, wa) + te(sun, E2))
+SSB = seq(min(SSB), max(SSB), length.out = 100)
+wa = seq(min(wa), max(wa), length.out = 100)
+predicted = matrix(ncol=length(SSB),nrow = length(wa))
 
+for(i in 1:length(wa)){ 
+  new.data = data.frame(SSB,wa[i], mean(sun), mean(E2))
+  names(new.data)<-c("SSB","wa", "sun", "E2")
+  pred = predict.gam(m, newdata = new.data)
+  predicted[,i] = pred}
+
+par(mfrow = c(2,1))
+image(predicted,col=matlab.like(20),axes=F , xlab="Winter harshness", ylab = "SSB")
+contour(predicted,levels = c(1000,1500,2000,2500,3000,3500),add=T)
+labels_wa = as.numeric(c(round(quantile(wa, c(0.2,0.4,0.6,0.8)), digits = 0)))
+labels_SSB = as.numeric(c(round(quantile(SSB, c(0.2,0.4,0.6,0.8)), digits = 0)))
+axis(1, at = c(0.2,0.4,0.6,0.8), labels = labels_wa)
+axis(2, at = c(0.2,0.4,0.6,0.8), labels = labels_SSB)
+
+var = d$R
+SSB = d$SSB
+wa = d$wa
+sun = d$sun
+E2 = d$open_E2
+m = gam(var ~ te(SSB, wa) + te(sun, E2))
+sun = seq(min(sun), max(sun), length.out = 100)
+E2 = seq(min(E2), max(E2), length.out = 100)
+predicted = matrix(ncol=length(sun),nrow = length(E2))
+
+for(i in 1:length(E2)){ 
+  new.data = data.frame(sun,E2[i], mean(SSB), mean(wa))
+  names(new.data)<-c("sun", "E2","SSB","wa")
+  pred = predict.gam(m, newdata = new.data)
+  predicted[,i] = pred}
+
+image(predicted,col=matlab.like(20),axes=F , xlab="open_E2", ylab = "sun")
+contour(predicted,levels = c(1000,1500,2000,2500,3000,3500),add=T)
+labels_sun = as.numeric(c(round(quantile(sun, c(0.2,0.4,0.6,0.8)), digits = 0)))
+labels_E2 = as.numeric(c(round(quantile(E2, c(0.2,0.4,0.6,0.8)), digits = 0)))
+axis(1, at = c(0.2,0.4,0.6,0.8), labels = labels_E2)
+axis(2, at = c(0.2,0.4,0.6,0.8), labels = labels_sun)
 
 
 #Create 2D images of te(wa, SSB0) and te(N, E3)
