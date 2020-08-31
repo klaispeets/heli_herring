@@ -123,7 +123,10 @@ summary(gam(R ~ te(wa, SSB, k = 4) + te(may_june, wa, k = 4), data = d))#NS
 
 #Step 4: interaction between N and E3
 #summary(gam(R ~ te(wa, SSB, k = 4) + te(N, E3, k = 4), data = d))#Rsq adj 0.49 (from 0.39), but te(E3,N) is only marginally significant (0.07)
-
+summary(gam(R ~ te(wa, SSB, k = 4) + te(open_N, open_E3, k = 4), data = d))#NS
+summary(gam(R ~ te(wa, SSB, k = 4) + te(open_E2, open_N, k = 4), data = d))# S 0.537
+summary(gam(R ~ te(wa, SSB, k = 4) + te(open_E2, sun, k = 4), data = d)) #S 0.563
+summary(gam(R ~ te(wa, SSB, k = 4) + te(open_E2, may_june, k = 4), data = d))
 
 
 
