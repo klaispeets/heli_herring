@@ -47,6 +47,7 @@ if(TRUE){
   if(user=="riina"){load("/Users/riina82/work/Heli/heli herring/00zoopl_data_V4.RData")}else{load("~/Desktop/HeliWork/raim/GOR herring R analyses/revision_1/script_and_data/00_zooplankton_data_V4.RData")}
   
   #E.affinis ja naupliused pärnu lahest
+  
   s = SAMPLE[SAMPLE$subbasin == "Gulf of Riga" & !is.na(SAMPLE$vol) & !is.na(SAMPLE$lat) & SAMPLE$provider == "est",]
   s$month = as.numeric(format(s$Date, "%m"))
   
@@ -71,38 +72,60 @@ if(TRUE){
   mch = match(set$sampleID,s$sampleID)
   env = subset(s, select = c("lat", "lon", "year", "jul", "month"))
   set = cbind(set, env[mch, ])
-  set = set[which(set$month %in% c(5,6,7)),] #ainult mai ja juuni kuu 
+  set1 = set[which(set$month %in% c(5,6,7)),]
+  set2 = set[which(set$month %in% c(5,6)),]
+  
   library(mgcv)
-  new.data = data.frame(unique(set$year))
+  new.data = data.frame(unique(set1$year))
   names(new.data)="year"
-  new.data$jul = mean(set$jul)
-  new.data$lat = mean(set$lat)
-  new.data$lon = mean(set$lon)
-  
-  m = gam(log1p(N) ~ te(lat, lon) + s(jul, k = 4) + as.factor(year), data = set)
+  new.data$jul = mean(set1$jul)
+  new.data$lat = mean(set1$lat)
+  new.data$lon = mean(set1$lon)
+  m = gam(log1p(N) ~ te(lat, lon) + s(jul, k = 4) + as.factor(year), data = set1)
   new.data$predN = predict(m, newdata = new.data)
-  eu = subset(new.data, select = c("year", "predN"))
-  
-  m = gam(log1p(E1) ~ te(lat, lon) + s(jul, k = 4) + as.factor(year), data = set)
+  m = gam(log1p(E1) ~ te(lat, lon) + s(jul, k = 4) + as.factor(year), data = set1)
   new.data$predE1 = predict(m, newdata = new.data)
-  eu$predE1=new.data$predE1[match(eu$year, new.data$year)]
-  
-  m = gam(log1p(E2) ~ te(lat, lon) + s(jul, k = 4) + as.factor(year), data = set)
+  m = gam(log1p(E2) ~ te(lat, lon) + s(jul, k = 4) + as.factor(year), data = set1)
   new.data$predE2 = predict(m, newdata = new.data)
-  eu$predE2=new.data$predE2[match(eu$year, new.data$year)]
-  
-  m = gam(log1p(E3) ~ te(lat, lon) + s(jul, k = 4) + as.factor(year), data = set)
+  m = gam(log1p(E3) ~ te(lat, lon) + s(jul, k = 4) + as.factor(year), data = set1)
   new.data$predE3 = predict(m, newdata = new.data)
-  eu$predE3=new.data$predE3[match(eu$year, new.data$year)]
+
+  new.data$jul = mean(set2$jul)
+  new.data$lat = mean(set2$lat)
+  new.data$lon = mean(set2$lon)
+  m = gam(log1p(N) ~ te(lat, lon) + s(jul, k = 4) + as.factor(year), data = set2)
+  new.data$predN_2 = predict(m, newdata = new.data)
+  m = gam(log1p(E1) ~ te(lat, lon) + s(jul, k = 4) + as.factor(year), data = set2)
+  new.data$predE1_2 = predict(m, newdata = new.data)
+  m = gam(log1p(E2) ~ te(lat, lon) + s(jul, k = 4) + as.factor(year), data = set2)
+  new.data$predE2_2 = predict(m, newdata = new.data)
+  m = gam(log1p(E3) ~ te(lat, lon) + s(jul, k = 4) + as.factor(year), data = set2)
+  new.data$predE3_2 = predict(m, newdata = new.data)
+
+  mch = match(final$year, new.data$year)
+  final = cbind(final, new.data[mch,c(5:12)])
+
+  par(mfrow=c(2,2))
+  plot(log1p(N) ~  year, data = set1, main = "Nauplii: observed vs calculated annual means", col = rgb(0,0,0,alpha = 0.1), pch = 16)
+  points(predN~year, data = new.data, col = 2, pch = 16)
+  points(predN_2~year, data = new.data, col = 3, pch = 16)
+  text(c(1955,1955), c(20,18), labels = c("Based on May-July", "Based on May-June"), col = c(2,3), pos = 4, cex = .8)
+
+  plot(log1p(E1) ~  year, data = set1, main = "E1: observed vs calculated annual means", col = rgb(0,0,0,alpha = 0.1), pch = 16)
+  points(predE1~year, data = new.data, col = 2, pch = 16)
+  points(predE1_2~year, data = new.data, col = 3, pch = 16)
+  text(c(1955,1955), c(20,18), labels = c("Based on May-July", "Based on May-June"), col = c(2,3), pos = 4, cex = .8)
   
-  eu=eu[which(eu$year %in% c(1957:2016)),]
+  plot(log1p(E2) ~  year, data = set1, main = "E2: observed vs calculated annual means", col = rgb(0,0,0,alpha = 0.1), pch = 16)
+  points(predE2~year, data = new.data, col = 2, pch = 16)
+  points(predE2_2~year, data = new.data, col = 3, pch = 16)
+  text(c(1955,1955), c(19.5,18), labels = c("Based on May-July", "Based on May-June"), col = c(2,3), pos = 4, cex = .8)
   
-  final$E1 = eu$predE1[match(final$year, eu$year)]
-  final$E2 = eu$predE2[match(final$year, eu$year)]
-  final$E3 = eu$predE3[match(final$year, eu$year)]
-  final$N = eu$predN[match(final$year, eu$year)]
-  
-  
+
+  plot(log1p(E3) ~  year, data = set1, main = "E3: observed vs calculated annual means", col = rgb(0,0,0,alpha = 0.1), pch = 16)
+  points(predE3~year, data = new.data, col = 2, pch = 16)
+  points(predE3_2~year, data = new.data, col = 3, pch = 16)
+  text(c(1955,1955), c(19.5,18), labels = c("Based on May-July", "Based on May-June"), col = c(2,3), pos = 4, cex = .8)
   
   #Eurytemora affinis from open gulf (Gunta)
   s = SAMPLE[SAMPLE$subbasin == "Gulf of Riga" & !is.na(SAMPLE$vol) & !is.na(SAMPLE$lat) & SAMPLE$provider == "Gunta Rubene",]
@@ -133,7 +156,7 @@ if(TRUE){
   set = set[which(set$month %in% c(5)),] #ainult mai kuu 
   
   ######predicted mean abundance in May & June
-  library(mgcv)
+
   new.data = data.frame(unique(set$year))
   names(new.data)="year"
   new.data$jul = mean(set$jul)
@@ -141,28 +164,20 @@ if(TRUE){
   new.data$lon = mean(set$lon)
   
   m = gam(log1p(N) ~ te(lat, lon) + s(jul, k = 4) + as.factor(year), data = set)
-  new.data$predN = predict(m, newdata = new.data)
-  eu = subset(new.data, select = c("year", "predN"))
-  
+  new.data$open_N = predict(m, newdata = new.data)
+
   m = gam(log1p(E1) ~ te(lat, lon) + s(jul, k = 4) + as.factor(year), data = set)
-  new.data$predE1 = predict(m, newdata = new.data)
-  eu$predE1=new.data$predE1[match(eu$year, new.data$year)]
-  
+  new.data$open_E1 = predict(m, newdata = new.data)
+
   m = gam(log1p(E2) ~ te(lat, lon) + s(jul, k = 4) + as.factor(year), data = set)
-  new.data$predE2 = predict(m, newdata = new.data)
-  eu$predE2=new.data$predE2[match(eu$year, new.data$year)]
-  
+  new.data$open_E2 = predict(m, newdata = new.data)
+
   m = gam(log1p(E3) ~ te(lat, lon) + s(jul, k = 4) + as.factor(year), data = set)
-  new.data$predE3 = predict(m, newdata = new.data)
-  eu$predE3=new.data$predE3[match(eu$year, new.data$year)]
-  
-  eu=eu[which(eu$year %in% c(1957:2016)),]
+  new.data$open_E3 = predict(m, newdata = new.data)
+
   #####
-  
-  final$open_E1 = eu$predE1[match(final$year, eu$year)]
-  final$open_E2 = eu$predE2[match(final$year, eu$year)]
-  final$open_E3 = eu$predE3[match(final$year, eu$year)]
-  final$open_N = eu$predN[match(final$year, eu$year)]
+  mch = match(final$year, new.data$year)
+  final = cbind(final, new.data[mch, c(5:8)])
   
   
   ##################
