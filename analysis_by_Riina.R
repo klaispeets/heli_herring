@@ -215,7 +215,7 @@ newdata$pred_m1 = predict(m1)
 newdata$oos_R1 = NA
 newdata$corr1 = NA
 
-for(i in 1:53){
+for(i in 1:nrow(newdata)){
   # train new model leaving out the i'th year
   m1 = gam(R ~ te(SSB, open_E2, k = 4) + te(E3_2, SSB, k = 4), data = newdata[-i,]) 
   # Predict R for all years, including for the year that was left out ("out of sample prediction")
@@ -402,7 +402,7 @@ newdata$oos_R2 = NA
 newdata$corr1 = NA
 newdata$corr2 = NA
 
-for(i in 1:53){
+for(i in 1:nrow(newdata)){
   # train new models leaving out year i
   m1 = gam(R ~ te(SSB, wa, k = 4), data = newdata[-i,]) 
   m2 = gam(R ~ te(SSB, wa, k = 4) +  te(N, E3, k = 4) , data = newdata[-i,])
@@ -439,15 +439,16 @@ lines(oos_R1~year, data = newdata, col = 2)
 lines(oos_R2~year, data= newdata, col = 3)
 text(c(1960,1960,1960), c(7000,6300,5600), labels = c("Observed", "Model 1", "Model 2"), col = c(1,2,3), pos = 4)
 
+n = nrow(newdata)-14
 if(TRUE){
   #Test whether the correlation between R and SSB depends on the mean level of SSB
   type = "chronological" # alternative: "chronological" #lisasin siia } juurde, muidu jookseb kinni (Heli)
   if(type=="SSB"){newdata = newdata[order(newdata$SSB),]}else{newdata = newdata[order(newdata$year),]}
   if(type=="SSB"){xlabel = "Mean SSB"}else{xlabel = "Middle year"}
-  meanSSB = rep(NA,39)
-  slope = rep(NA, 39)
-  p = rep(NA, 39)
-  for(i in 1:39){
+  meanSSB = rep(NA,n)
+  slope = rep(NA, n)
+  p = rep(NA, n)
+  for(i in 1:n){
     idx = c(i: (i+14))
     m = lm(R ~ SSB, data = newdata[idx,])
     slope[i] = summary(m)$coefficients[2,1]
@@ -467,10 +468,10 @@ if(TRUE){
   axis(4);mtext("Mean SSB", side = 4,  line = 1.5, cex = 0.8, col = grey(0.5))
   
   #WA
-  slope = rep(NA, 39)
-  p = rep(NA, 39)
-  meanWA = rep(NA,39)
-  for(i in 1:39){
+  slope = rep(NA, n)
+  p = rep(NA, n)
+  meanWA = rep(NA, n)
+  for(i in 1:n){
     idx = c(i: (i+14))
     m = lm(R ~ wa, data = newdata[idx,])
     slope[i] = summary(m)$coefficients[2,1]
@@ -488,10 +489,10 @@ if(TRUE){
   
   
   #N
-  slope = rep(NA, 39)
-  p = rep(NA, 39)
-  meanN = rep(NA,39)
-  for(i in 1:39){
+  slope = rep(NA, n)
+  p = rep(NA, n)
+  meanN = rep(NA, n)
+  for(i in 1:n){
     idx = c(i: (i+14))
     m = lm(R ~ N, data = newdata[idx,])
     slope[i] = summary(m)$coefficients[2,1]
@@ -508,10 +509,10 @@ if(TRUE){
   axis(4);mtext("Mean N", side = 4,  line = 1.5, cex = 0.8)
   
   #E1
-  slope = rep(NA, 39)
-  p = rep(NA, 39)
-  meanE1 = rep(NA,39)
-  for(i in 1:39){
+  slope = rep(NA, n)
+  p = rep(NA, n)
+  meanE1 = rep(NA,n)
+  for(i in 1:n){
     idx = c(i: (i+14))
     m = lm(R ~ E1, data = newdata[idx,])
     slope[i] = summary(m)$coefficients[2,1]
@@ -528,10 +529,10 @@ if(TRUE){
   axis(4);mtext("Mean E1", side = 4,  line = 1.5, cex = 0.8)
   
   #E2
-  slope = rep(NA, 39)
-  p = rep(NA, 39)
-  meanE2 = rep(NA,39)
-  for(i in 1:39){
+  slope = rep(NA, n)
+  p = rep(NA, n)
+  meanE2 = rep(NA,n)
+  for(i in 1:n){
     idx = c(i: (i+14))
     m = lm(R ~ E2, data = newdata[idx,])
     slope[i] = summary(m)$coefficients[2,1]
@@ -549,10 +550,10 @@ if(TRUE){
   
   
   #E3
-  slope = rep(NA, 39)
-  p = rep(NA, 39)
-  meanE3 = rep(NA,39)
-  for(i in 1:39){
+  slope = rep(NA, n)
+  p = rep(NA, n)
+  meanE3 = rep(NA,n)
+  for(i in 1:n){
     idx = c(i: (i+14))
     m = lm(R ~ E3, data = newdata[idx,])
     slope[i] = summary(m)$coefficients[2,1]
@@ -573,16 +574,16 @@ if(TRUE){
 ##Open
 newdata = subset(d, select = c("year","R", "SSB", "wa", "open_N","open_E1","open_E2","open_E3", "sun", "may_june"))
 
-
+n = nrow(newdata)-14
 if(TRUE){
   #Test whether the correlation between R and SSB depends on the mean level of SSB
   type = "SSB" # alternative: "chronological" #lisasin siia } juurde, muidu jookseb kinni (Heli)
   if(type=="SSB"){newdata = newdata[order(newdata$SSB),]}else{newdata = newdata[order(newdata$year),]}
   if(type=="SSB"){xlabel = "Mean SSB"}else{xlabel = "Middle year"}
-  meanSSB = rep(NA,39)
-  slope = rep(NA, 39)
-  p = rep(NA, 39)
-  for(i in 1:39){
+  meanSSB = rep(NA,n)
+  slope = rep(NA, n)
+  p = rep(NA, n)
+  for(i in 1:n){
     idx = c(i: (i+14))
     m = lm(R ~ SSB, data = newdata[idx,])
     slope[i] = summary(m)$coefficients[2,1]
@@ -603,10 +604,10 @@ if(TRUE){
   
   
   #N
-  slope = rep(NA, 39)
-  p = rep(NA, 39)
-  meanN = rep(NA,39)
-  for(i in 1:39){
+  slope = rep(NA, n)
+  p = rep(NA, n)
+  meanN = rep(NA, n)
+  for(i in 1:n){
     idx = c(i: (i+14))
     m = lm(R ~ open_N, data = newdata[idx,])
     slope[i] = summary(m)$coefficients[2,1]
@@ -623,10 +624,10 @@ if(TRUE){
   axis(4);mtext("Mean N", side = 4,  line = 1.5, cex = 0.8)
   
   #E1
-  slope = rep(NA, 39)
-  p = rep(NA, 39)
-  meanE1 = rep(NA,39)
-  for(i in 1:39){
+  slope = rep(NA, n)
+  p = rep(NA, n)
+  meanE1 = rep(NA,n)
+  for(i in 1:n){
     idx = c(i: (i+14))
     m = lm(R ~ open_E1, data = newdata[idx,])
     slope[i] = summary(m)$coefficients[2,1]
@@ -643,10 +644,10 @@ if(TRUE){
   axis(4);mtext("Mean E1", side = 4,  line = 1.5, cex = 0.8)
   
   #E2
-  slope = rep(NA, 39)
-  p = rep(NA, 39)
-  meanE2 = rep(NA,39)
-  for(i in 1:39){
+  slope = rep(NA, n)
+  p = rep(NA, n)
+  meanE2 = rep(NA,n)
+  for(i in 1:n){
     idx = c(i: (i+14))
     m = lm(R ~ open_E2, data = newdata[idx,])
     slope[i] = summary(m)$coefficients[2,1]
@@ -664,10 +665,10 @@ if(TRUE){
   
   
   #E3
-  slope = rep(NA, 39)
-  p = rep(NA, 39)
-  meanE3 = rep(NA,39)
-  for(i in 1:39){
+  slope = rep(NA, n)
+  p = rep(NA, n)
+  meanE3 = rep(NA,n)
+  for(i in 1:n){
     idx = c(i: (i+14))
     m = lm(R ~ open_E3, data = newdata[idx,])
     slope[i] = summary(m)$coefficients[2,1]
@@ -684,10 +685,10 @@ if(TRUE){
   axis(4);mtext("Mean E3", side = 4,  line = 1.5, cex = 0.8)
   
   #sun
-  slope = rep(NA, 39)
-  p = rep(NA, 39)
-  mean_sun = rep(NA,39)
-  for(i in 1:39){
+  slope = rep(NA, n)
+  p = rep(NA, n)
+  mean_sun = rep(NA,n)
+  for(i in 1:n){
     idx = c(i: (i+14))
     m = lm(R ~ sun, data = newdata[idx,])
     slope[i] = summary(m)$coefficients[2,1]
@@ -704,10 +705,10 @@ if(TRUE){
   axis(4);mtext("Mean sun", side = 4,  line = 1.5, cex = 0.8)
   
   #may_june
-  slope = rep(NA, 39)
-  p = rep(NA, 39)
-  mean_summer = rep(NA,39)
-  for(i in 1:39){
+  slope = rep(NA, n)
+  p = rep(NA, n)
+  mean_summer = rep(NA,n)
+  for(i in 1:n){
     idx = c(i: (i+14))
     m = lm(R ~ may_june, data = newdata[idx,])
     slope[i] = summary(m)$coefficients[2,1]
@@ -724,10 +725,10 @@ if(TRUE){
   axis(4);mtext("Mean temperature", side = 4,  line = 1.5, cex = 0.8)
   
   #WA
-  slope = rep(NA, 39)
-  p = rep(NA, 39)
-  meanWA = rep(NA,39)
-  for(i in 1:39){
+  slope = rep(NA, n)
+  p = rep(NA, n)
+  meanWA = rep(NA,n)
+  for(i in 1:n){
     idx = c(i: (i+14))
     m = lm(R ~ wa, data = newdata[idx,])
     slope[i] = summary(m)$coefficients[2,1]
