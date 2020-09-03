@@ -7,6 +7,7 @@ load("consolidated_herring.RData")
 library(colorRamps)
 library(mgcv)
 
+final$wa = final$wa[c(2:nrow(final), NA)]
 #Kasutame alguses ainult neid ridu kus koik muutujad olemas
 d = final[which(final$complete == "yes"),]
 
