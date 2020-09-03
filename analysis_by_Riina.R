@@ -8,6 +8,9 @@ library(colorRamps)
 library(mgcv)
 
 final$wa = final$wa[c(2:nrow(final), NA)]
+final$complete = apply(is.na(final[,c(2:ncol(final)),]), 1, sum)
+final$complete = ifelse(final$complete==0, "yes", "no")
+
 #Kasutame alguses ainult neid ridu kus koik muutujad olemas
 d = final[which(final$complete == "yes"),]
 
