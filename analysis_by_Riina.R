@@ -152,7 +152,7 @@ summary(gam(R ~ s(open_E2, k = 4), data = newdata))
 #Päris hea kusjuures
 
 #Step2 - siin peaks jätkama sama loogikaga nagu varasemalt - proovima kõigepealt milline teine muutuja interaktsioonis SSB-ga võiks järgmisena lisatud saada
-summary(gam(R ~ te(open_E2, SSB, k = 4) + te(wa, SSB, k = 4), data = d))#NS
+summary(gam(R ~ te(open_E2, SSB, k = 4) + te(wa, SSB, k = 4), data = d))##S 0.664
 summary(gam(R ~ te(open_E2, SSB, k = 4) + te(sun, SSB, k = 4), data = d)) # 0.56
 summary(gam(R ~ te(open_E2, SSB, k = 4) + te(may_june, SSB, k = 4), data = d)) # NS
 
@@ -228,13 +228,84 @@ range(newdata$corr1)
 summary(lm(R~oos_R1, data = newdata))#Ainult 0.29 - mmis tähendab et kuigi mudel nagu seletaks hästi, ei ole out of sample prediction ja stability kuigi head enam.
 
 
-#Siit edasi on juba vana skript. Põhimõtteliselt võiks järgmise sammuna jätta E3_2 kõrvale (kuna out of sample prediction test ütles et see pole väga hea muutuja),
+#Põhimõtteliselt võiks järgmise sammuna jätta E3_2 kõrvale (kuna out of sample prediction test ütles et see pole väga hea muutuja),
 #ja proovida mõne muu muutujaga, nt te(sun, SSB), või hoopis te(sun, wa).
 
+#Create 2D images of te(open_E2, SSB0) and te(wa, SSB)
+var = d$R
+SSB = d$SSB
+open_E2 = d$open_E2
+wa = d$wa
+m = gam(var ~ te(open_E2, SSB) + te(wa, SSB))
+SSB = seq(min(SSB), max(SSB), length.out = 100)
+open_E2 = seq(min(open_E2), max(open_E2), length.out = 100)
+predicted = matrix(ncol=length(SSB),nrow = length(open_E2))
+
+for(i in 1:length(open_E2)){ 
+  new.data = data.frame(SSB,open_E2[i], mean(wa))
+  names(new.data)<-c("SSB","open_E2", "wa")
+  pred = predict.gam(m, newdata = new.data)
+  predicted[,i] = pred}
+
+par(mfrow = c(2,1))
+image(predicted,col=matlab.like(20),axes=F , xlab="Open E2", ylab = "SSB")
+contour(predicted,levels = c(1000,1500,2000,2500,3000,3500),add=T)
+labels_open_E2 = as.numeric(c(round(quantile(open_E2, c(0.2,0.4,0.6,0.8)), digits = 0)))
+labels_SSB = as.numeric(c(round(quantile(SSB, c(0.2,0.4,0.6,0.8)), digits = 0)))
+axis(1, at = c(0.2,0.4,0.6,0.8), labels = labels_open_E2)
+axis(2, at = c(0.2,0.4,0.6,0.8), labels = labels_SSB)
+
+var = d$R
+SSB = d$SSB
+wa= d$wa
+open_E2 = d$open_E2
+m = gam(var ~ te(open_E2, SSB) + te(wa ,SSB))
+wa = seq(min(wa), max(wa), length.out = 100)
+SSB = seq(min(SSB), max(SSB), length.out = 100)
+predicted = matrix(ncol=length(wa),nrow = length(SSB))
+
+for(i in 1:length(wa)){ 
+  new.data = data.frame(SSB,wa[i], mean(open_E2))
+  names(new.data)<-c("SSB", "wa","open_E2")
+  pred = predict.gam(m, newdata = new.data)
+  predicted[,i] = pred}
+
+image(predicted,col=matlab.like(20),axes=F , xlab="Winter harshness", ylab = "SSB")
+contour(predicted,levels = c(1000,1500,2000,2500,3000,3500),add=T)
+labels_wa = as.numeric(c(round(quantile(wa, c(0.2,0.4,0.6,0.8)), digits = 0)))
+labels_SSB = as.numeric(c(round(quantile(SSB, c(0.2,0.4,0.6,0.8)), digits = 0)))
+axis(1, at = c(0.2,0.4,0.6,0.8), labels = labels_wa)
+axis(2, at = c(0.2,0.4,0.6,0.8), labels = labels_SSB)
+
+
+newdata = subset(d, select = c("year","R", "SSB", "open_E2", "wa"))
+newdata$wa = newdata$wa
+m1 = gam(R ~ te(SSB, open_E2, k = 4)+te(wa, SSB, k = 4), data = newdata)
+newdata$pred_m1 = predict(m1)
+newdata$oos_R1 = NA
+newdata$corr1 = NA
+
+for(i in 1:nrow(newdata)){
+  # train new model leaving out the i'th year
+  m1 = gam(R ~ te(SSB, open_E2, k = 4) + te(wa, SSB, k = 4), data = newdata[-i,]) 
+  # Predict R for all years, including for the year that was left out ("out of sample prediction")
+  pred1 = predict(m1, newdata = newdata)  
+  newdata$oos_R1[i] = pred1[i]
+  newdata$corr1[i] = cor(newdata$pred_m1, pred1)
+}
+
+range(newdata$corr1)
+summary(lm(R~oos_R1, data = newdata))# 0.5061
+######
 
 
 
 
+
+
+
+
+#Siit edasi on juba vana skript
 #####
 #####
 
