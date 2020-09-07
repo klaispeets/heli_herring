@@ -7,15 +7,25 @@ load("consolidated_herring.RData")
 library(colorRamps)
 library(mgcv)
 
-final$wa = final$wa[c(2:nrow(final), NA)]
+
+#Siin ma testin mis on parem - wa enne sündi (algne wa tabelis) või wa 0-1aasta vahel
+summary(gam(R~s(wa, k = 4), data = d)) #algne
+plot(gam(R~s(wa, k = 4), data = d))  # positiivne seos
+final$wa0 = final$wa[c(2:nrow(final), NA)]  #0 ja 1 aasta vahel
+summary(gam(R~s(wa0, k = 4), data = final)) 
+plot(gam(R~s(wa0, k = 4), data = final))
+final$sun = NULL # Jätame päikese välja, see lõikab osa aastaid ära ja ei olnud oluline ka
+
+
 final$complete = apply(is.na(final[,c(2:ncol(final)),]), 1, sum)
 final$complete = ifelse(final$complete==0, "yes", "no")
 
+#Nüüd jälle 55 aastat
 #Kasutame alguses ainult neid ridu kus koik muutujad olemas
 d = final[which(final$complete == "yes"),]
 
 #Selle rea pidin lisama, kuna ma tegin veidi data_prep skripti ümber; ja nüüd osad tulbanimed olid teised kui edasises skriptis
-names(d) = c("year","R","SSB","sun","N","E1","E2","E3","N_2","E1_2", "E2_2", "E3_2", "open_N",   "open_E1",  "open_E2",  "open_E3",  "wa","may_june", "complete")
+names(d) = c("year","R","SSB","N","E1","E2","E3","N_2","E1_2", "E2_2", "E3_2", "open_N",   "open_E1",  "open_E2",  "open_E3",  "wa","may_june", "complete","wa0" )
 
 d$N[which(d$year == 2001)] = mean(d$N[which(d$year %in% c(2000,2002))])
 d$N_2[which(d$year == 2001)] = mean(d$N_2[which(d$year %in% c(2000,2002))])
@@ -49,13 +59,13 @@ plot(d$open_N ~ d$year, ylab=expression(paste("Abudance (log ind. ",m**-2,")")),
 lines(d$open_N ~ d$year)
 mtext("open_N", side=3, adj=0, cex= 0.6)
 
-par(mfrow = c(1, 3), tck=-0.02,mar=c(2.5,2.5,2.5,2.5), mgp = c(1.3,0.3,0))
+par(mfrow = c(1, 2), tck=-0.02,mar=c(2.5,2.5,2.5,2.5), mgp = c(1.3,0.3,0))
 plot(d$wa ~ d$year, ylab="winter severity", xlab="Year", pch = 16)
 lines(d$wa ~ d$year)
 mtext("wa", side=3, adj=0, cex= 0.6)
-plot(d$sun ~ d$year, ylab="sun hours", xlab="Year", pch = 16)
-lines(d$sun ~ d$year)
-mtext("sun", side=3, adj=0, cex= 0.6)
+#plot(d$sun ~ d$year, ylab="sun hours", xlab="Year", pch = 16)
+#lines(d$sun ~ d$year)
+#mtext("sun", side=3, adj=0, cex= 0.6)
 plot(d$may_june ~ d$year, ylab="temperature", xlab="Year", pch = 16)
 lines(d$may_june ~ d$year)
 mtext("may_june temp", side=3, adj=0, cex= 0.6)
@@ -67,46 +77,47 @@ mtext("may_june temp", side=3, adj=0, cex= 0.6)
 #Panin kõigi katsetuste tulemused siia:
 #https://docs.google.com/spreadsheets/d/1iDOtbrB-3WCmL4VLl3T0OUsVn2o2LrAl9Otki7g89kI/edit#gid=0
 
+#Jätsin nüüd selle natural scale asja siiski ära - mulle tundub et seal mängisid rolli üksikud väga kõrged väärtused pärast naturaalsele skaalale tagasiviimist
 library(mgcv)
-summary(gam(R ~ te((N), SSB, k = 4), data = d))$r.sq
-summary(gam(R ~ te(exp(N), SSB, k = 4), data = d))$r.sq  # Natural scale
-summary(gam(R ~ te((N_2), SSB, k = 4), data = d))$r.sq
-summary(gam(R ~ te(exp(N_2), SSB, k = 4), data = d))$r.sq
 
-summary(gam(R ~ te((E1), SSB, k = 4), data = d))$r.sq
-summary(gam(R ~ te(exp(E1), SSB, k = 4), data = d))$r.sq
-summary(gam(R ~ te((E1_2), SSB, k = 4), data = d))$r.sq
-summary(gam(R ~ te(exp(E1_2), SSB, k = 4), data = d))$r.sq
+#Alustame kõigi võimalike muutujate vaatamist ükshaaval, aga interaktsioonis SSB-ga (kuna algne hüpotees oli et SSB on nö state variable)
+summary(gam(R ~ te(N, SSB, k = 4), data = d))$r.sq #0.3
+summary(gam(R ~ te(N_2, SSB, k = 4), data = d))$r.sq # 0.32
+summary(gam(R ~ te(E1, SSB, k = 4), data = d))$r.sq  #0.24
+summary(gam(R ~ te(E1_2, SSB, k = 4), data = d))$r.sq  #0.36
+summary(gam(R ~ te(E2, SSB, k = 4), data = d))$r.sq # 0.24
+summary(gam(R ~ te(E2_2, SSB, k = 4), data = d))$r.sq # 0.33
+summary(gam(R ~ te(E3, SSB, k = 4), data = d))$r.sq # 0.24
+summary(gam(R ~ te(E3_2, SSB, k = 4), data = d))$r.sq# 0.39  - rannikumerest oli parim korrelatsioon adult E. affinisega mai-juuni perioodil (mitte mai-juuli)
+summary(gam(R ~ te(open_N, SSB, k = 4), data = d))$r.sq #0.26
+summary(gam(R ~ te(open_E1, SSB, k = 4), data = d))$r.sq #0.438
+summary(gam(R ~ te(open_E2, SSB, k = 4), data = d))$r.sq # 0.53 - avaosast parim E2 mais
+summary(gam(R ~ te(open_E3, SSB, k = 4), data = d))$r.sq # 0.29
+summary(gam(R ~ te(wa, SSB, k = 4), data = d))$r.sq  # 0.4
+summary(gam(R ~ te(may_june, SSB, k = 4), data = d))$r.sq   #0.26
 
+#Proovie kui hea on avamere ja rannikmere parimad toidukategooriad univariate smoothina, s.t. ilma SSB-ta:
+summary(gam(R ~ s(open_E2, k = 4) + s(E3_2, k = 4), data = d))  #=.54, mõlemad on ka olulised (p<0.05)
+summary(gam(R ~ te(open_E2, SSB, k = 4) + te(E3_2, SSB, k = 4), data = d))  #=.59, both sign
 
-summary(gam(R ~ te((E2), SSB, k = 4), data = d))$r.sq
-summary(gam(R ~ te(exp(E2), SSB, k = 4), data = d))$r.sq
-summary(gam(R ~ te((E2_2), SSB, k = 4), data = d))$r.sq
-summary(gam(R ~ te(exp(E2_2), SSB, k = 4), data = d))$r.sq
-
-
-summary(gam(R ~ te((E3), SSB, k = 4), data = d))$r.sq
-summary(gam(R ~ te(exp(E3), SSB, k = 4), data = d))$r.sq
-summary(gam(R ~ te((E3_2), SSB, k = 4), data = d))$r.sq
-summary(gam(R ~ te(exp(E3_2), SSB, k = 4), data = d))$r.sq
-
-summary(gam(R ~ te((open_N), SSB, k = 4), data = d))$r.sq
-summary(gam(R ~ te(exp(open_N), SSB, k = 4), data = d))$r.sq
-
-summary(gam(R ~ te((open_E1), SSB, k = 4), data = d))$r.sq
-summary(gam(R ~ te(exp(open_E1), SSB, k = 4), data = d))$r.sq
-
-summary(gam(R ~ te((open_E2), SSB, k = 4), data = d))$r.sq
-summary(gam(R ~ te(exp(open_E2), SSB, k = 4), data = d))$r.sq
-
-summary(gam(R ~ te((open_E3), SSB, k = 4), data = d))$r.sq
-summary(gam(R ~ te(exp(open_E3), SSB, k = 4), data = d))$r.sq
-
-#Nagu sa ise õigesti märkasid, andis parima tulemuse tegelikult open_E2 (log skaalal).
-#Seega on korrektne jätkata seda esimesena lisades.
-#Kõigepealt joonis vaatamaks kuidas see 2D space välja näeb kus meil on SSB ja open_E2 interaktsioonis:
+summary(gam(R ~ te(open_E2, SSB, k = 4) + te(E3_2, SSB, k = 4) + te(wa, SSB, k = 4), data = d))  # wa ei ole enam oluline, kui open_E2 on sees - see on siis sünniaasta WA
+summary(gam(R ~ te(open_E2, SSB, k = 4) + te(E3_2, SSB, k = 4) + te(wa0, SSB, k = 4), data = d))  # wa0 on oluline (0-1 aasta vaheline talv) KUI open_E2 on sees
 
 
+#Veel mingid läbi proovitud kombinatsioonid:
+
+summary(gam(R ~ te(open_E2, SSB, k = 4) + s(wa, k = 4), data = d)) # wa siin lisatud ilma interaktsioonita
+summary(gam(R ~ te(open_E2, SSB, k = 4) + te(wa, may_june, k = 4), data = d)) # te(wa, may_june) NS
+summary(gam(R ~ te(open_E2, wa, k = 4), data = d)) # te(open_E2, wa) is worse than with SSB
+summary(gam(R ~ te(open_E2, may_june, k = 4), data = d)) # te(open_E2, may_june) is also worse than with SSB
+summary(gam(R ~ s(open_E2, k = 4), data = d)) # alone 0.45
+summary(gam(R ~ s(open_E2, k = 4) + s(may_june, k = 4), data = d)) # may_june NS
+summary(gam(R ~ s(open_E2, k = 4) + s(wa, k = 4), data = d)) # wa NS
+#NB!
+summary(gam(R ~ te(open_E2, SSB, k = 4) + te(E3_2, SSB, k = 4) +te(wa0, k = 4), data = d)) # see siiani parim
+
+
+#2D joonis millelt on kehvasti mudeldatud osad valgeks jäetud:
 var = d$R
 SSB = d$SSB
 open_E2 = d$open_E2
@@ -114,27 +125,33 @@ m = gam(var ~ te(SSB, open_E2))
 SSB = seq(min(d$SSB), max(d$SSB), length.out = 100)
 open_E2 = seq(min(d$open_E2), max(d$open_E2), length.out = 100)
 predicted = matrix(ncol=length(SSB),nrow = length(open_E2))
+se =  matrix(ncol=length(SSB),nrow = length(open_E2)) #siia tabelisse lähevad ennustuse standard vead
 for(i in 1:length(open_E2)){ 
   new.data = data.frame(SSB,open_E2[i])
   names(new.data)<-c("SSB","open_E2")
-  pred = predict.gam(m, newdata = new.data)
-  predicted[,i] = pred}
+  pred = predict.gam(m, newdata = new.data, se = T)
+  predicted[,i] = pred$fit
+  se[,i] = pred$se.fit
+  }
+
+idx = which(se > predicted/2) # Muuda NA-deks see osa maatriksist, kust stanrdard error on > 50% ennustatud R-ist
+predicted[idx] = NA
+
 par(mfrow = c(1,1))
 image(predicted,col=matlab.like(20),axes=F , xlab="open E2 (log-scale)", ylab = "SSB")
 contour(predicted,levels = c(1000,1500,2000,2500,3000,3500),add=T)
-labels_open_E2 = as.numeric(c(round(quantile(open_E2, c(0.2,0.4,0.6,0.8)), digits = 0)))
-labels_SSB = as.numeric(c(round(quantile(SSB, c(0.2,0.4,0.6,0.8)), digits = 0)))
-axis(1, at = c(0.2,0.4,0.6,0.8), labels = labels_open_E2)
-axis(2, at = c(0.2,0.4,0.6,0.8), labels = labels_SSB)
+par(new = T)
+plot(SSB~open_E2, data = d,pch = 1, xlab = "", ylab ="") # Siit on küll näha et see ala, kus veapiirid suuremad on, ei ole ilma punktideta, pigem on need eriliselt halvasti ennustatud väärtused
 
-#Proovime kohe ka kui hea on selle mudeli out of sample prediction skill:
+
+#Proovime kohe ka kui hea on open_E2 + SSB  out of sample prediction skill:
 
 newdata = subset(d, select = c("year","R", "SSB", "open_E2"))
 m1 = gam(R ~ te(SSB, open_E2, k = 4), data = newdata)
 newdata$pred_m1 = predict(m1)
 newdata$oos_R1 = NA
 newdata$corr1 = NA
-for(i in 1:53){
+for(i in 1:nrow(d)){
   # train new model leaving out the i'th year
   m1 = gam(R ~ te(SSB, open_E2, k = 4), data = newdata[-i,]) 
   # Predict R for all years, including for the year that was left out ("out of sample prediction")
@@ -149,23 +166,15 @@ points(oos_R1~year, data = newdata, col = 2, pch = 16)
 lines(oos_R1~year, data = newdata, col = 2, pch = 16)
 plot(R ~ open_E2, data = newdata)
 summary(gam(R ~ s(open_E2, k = 4), data = newdata))
+
 #Päris hea kusjuures
 
-#Step2 - siin peaks jätkama sama loogikaga nagu varasemalt - proovima kõigepealt milline teine muutuja interaktsioonis SSB-ga võiks järgmisena lisatud saada
-summary(gam(R ~ te(open_E2, SSB, k = 4) + te(wa, SSB, k = 4), data = d))##S 0.664
-summary(gam(R ~ te(open_E2, SSB, k = 4) + te(sun, SSB, k = 4), data = d)) # 0.56
-summary(gam(R ~ te(open_E2, SSB, k = 4) + te(may_june, SSB, k = 4), data = d)) # NS
 
-#Proovime ka parimat varianti rannikumere toidust, milleks oli mai-juuni E3 naturaalsel skaalal
-summary(gam(R ~ te(open_E2, SSB, k = 4) + te(exp(E3_2), SSB, k = 4), data = d)) # 0.63
-
-#Tundub nagu siseneks rannikumere toit järgmisena (enne päikest, talvekarmust jms)
-
-#Create 2D images of te(open_E2, SSB0) and te(exp(E3_2), SSB)
+#Create 2D images of te(open_E2, SSB0) and te(E3_2, SSB)
 var = d$R
 SSB = d$SSB
 open_E2 = d$open_E2
-E3_2 = exp(d$E3_2)
+E3_2 = d$E3_2
 m = gam(var ~ te(open_E2, SSB) + te(E3_2, SSB))
 SSB = seq(min(SSB), max(SSB), length.out = 100)
 open_E2 = seq(min(open_E2), max(open_E2), length.out = 100)
@@ -177,17 +186,18 @@ for(i in 1:length(open_E2)){
   pred = predict.gam(m, newdata = new.data)
   predicted[,i] = pred}
 
+predicted[which(se > predicted/2)] = NA
+
 par(mfrow = c(2,1))
 image(predicted,col=matlab.like(20),axes=F , xlab="Open E2", ylab = "SSB")
 contour(predicted,levels = c(1000,1500,2000,2500,3000,3500),add=T)
-labels_open_E2 = as.numeric(c(round(quantile(open_E2, c(0.2,0.4,0.6,0.8)), digits = 0)))
-labels_SSB = as.numeric(c(round(quantile(SSB, c(0.2,0.4,0.6,0.8)), digits = 0)))
-axis(1, at = c(0.2,0.4,0.6,0.8), labels = labels_open_E2)
-axis(2, at = c(0.2,0.4,0.6,0.8), labels = labels_SSB)
+par(new = T)
+plot(SSB~open_E2, data = d,pch = 1, xlab = "", ylab ="") # Siit on küll näha et see ala, kus veapiirid suuremad on, ei ole ilma punktideta, pigem on need eriliselt halvasti ennustatud väärtused
+
 
 var = d$R
 SSB = d$SSB
-E3_2 = exp(d$E3_2)
+E3_2 = d$E3_2
 open_E2 = d$open_E2
 m = gam(var ~ te(open_E2, SSB) + te(E3_2,SSB))
 E3_2 = seq(min(E3_2), max(E3_2), length.out = 100)
@@ -200,16 +210,18 @@ for(i in 1:length(E3_2)){
   pred = predict.gam(m, newdata = new.data)
   predicted[,i] = pred}
 
-image(predicted,col=matlab.like(20),axes=F , xlab="Natural scale E3, may-june", ylab = "SSB")
+idx = which(se > predicted/2)
+predicted[idx] = NA
+
+image(predicted,col=matlab.like(20),axes=F , xlab="Coastal E3, May-June", ylab = "SSB")
 contour(predicted,levels = c(1000,1500,2000,2500,3000,3500),add=T)
-labels_E3 = as.numeric(c(round(quantile(E3_2, c(0.2,0.4,0.6,0.8)), digits = 0)))
-labels_SSB = as.numeric(c(round(quantile(SSB, c(0.2,0.4,0.6,0.8)), digits = 0)))
-axis(1, at = c(0.2,0.4,0.6,0.8), labels = labels_E3)
-axis(2, at = c(0.2,0.4,0.6,0.8), labels = labels_SSB)
+par(new = T)
+plot(SSB~E3_2, data = d,pch = 1, xlab = "", ylab ="") # Siit on küll näha et see ala, kus veapiirid suuremad on, ei ole ilma punktideta, pigem on need eriliselt halvasti ennustatud väärtused
+
+summary(gam(var ~ te(open_E2, SSB) + te(E3_2,SSB), data = d))
 
 
 newdata = subset(d, select = c("year","R", "SSB", "open_E2", "E3_2"))
-newdata$E3_2 = exp(newdata$E3_2)
 m1 = gam(R ~ te(SSB, open_E2, k = 4)+te(E3_2, SSB, k = 4), data = newdata)
 newdata$pred_m1 = predict(m1)
 newdata$oos_R1 = NA
@@ -229,17 +241,16 @@ summary(lm(R~oos_R1, data = newdata))#Ainult 0.29 - mmis tähendab et kuigi mude
 
 
 #Põhimõtteliselt võiks järgmise sammuna jätta E3_2 kõrvale (kuna out of sample prediction test ütles et see pole väga hea muutuja),
-#ja proovida mõne muu muutujaga, nt te(sun, SSB), või hoopis te(sun, wa).
+#ja proovida mõne muu muutujaga, nt te(wa, SSB), või hoopis te(sun, wa).
 
-#Create 2D images of te(open_E2, SSB0) and te(wa, SSB)
+#Kui meil ei oleks võimalik SSB-d kasutada -
 var = d$R
-SSB = d$SSB
 open_E2 = d$open_E2
 wa = d$wa
-m = gam(var ~ te(open_E2, SSB) + te(wa, SSB))
-SSB = seq(min(SSB), max(SSB), length.out = 100)
+m = gam(var ~ te(open_E2, wa))
+wa = seq(min(wa), max(wa), length.out = 100)
 open_E2 = seq(min(open_E2), max(open_E2), length.out = 100)
-predicted = matrix(ncol=length(SSB),nrow = length(open_E2))
+predicted = matrix(ncol=length(wa),nrow = length(open_E2))
 
 for(i in 1:length(open_E2)){ 
   new.data = data.frame(SSB,open_E2[i], mean(wa))
