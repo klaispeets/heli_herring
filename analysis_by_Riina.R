@@ -9,8 +9,8 @@ library(mgcv)
 
 
 #Siin ma testin mis on parem - wa enne sündi (algne wa tabelis) või wa 0-1aasta vahel
-summary(gam(R~s(wa, k = 4), data = d)) #algne
-plot(gam(R~s(wa, k = 4), data = d))  # positiivne seos
+summary(gam(R~s(wa, k = 4), data = final)) #algne
+plot(gam(R~s(wa, k = 4), data = final))  # positiivne seos
 final$wa0 = final$wa[c(2:nrow(final), NA)]  #0 ja 1 aasta vahel
 summary(gam(R~s(wa0, k = 4), data = final)) 
 plot(gam(R~s(wa0, k = 4), data = final))
@@ -765,26 +765,7 @@ if(TRUE){
   par(new=T)
   plot(meanE3 ~ meanSSB, type = "line", col = grey(0.5), axes = F, ylab = "", xlab = "")
   axis(4);mtext("Mean E3", side = 4,  line = 1.5, cex = 0.8)
-  
-  #sun
-  slope = rep(NA, n)
-  p = rep(NA, n)
-  mean_sun = rep(NA,n)
-  for(i in 1:n){
-    idx = c(i: (i+14))
-    m = lm(R ~ sun, data = newdata[idx,])
-    slope[i] = summary(m)$coefficients[2,1]
-    p[i] = summary(m)$coefficients[2,4]
-    mean_sun[i] = round(mean(newdata$sun[idx]), digits=2)}
-  
-  plot(slope ~ meanSSB, xlab = xlabel, ylab = "Slope of lm(R ~ sun)")
-  idx = which(p<0.05)
-  points(slope[idx]~meanSSB[idx], pch = 16)
-  abline(h = 0, lwd = 0.5)
-  mtext(" f)", side = 3, adj = 0, line = -1.5, cex = 0.9)
-  par(new=T)
-  plot(mean_sun ~ meanSSB, type = "line", col = grey(0.5), axes = F, ylab = "", xlab = "")
-  axis(4);mtext("Mean sun", side = 4,  line = 1.5, cex = 0.8)
+ 
   
   #may_june
   slope = rep(NA, n)
