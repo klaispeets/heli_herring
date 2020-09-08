@@ -309,6 +309,179 @@ range(newdata$corr1)
 summary(lm(R~oos_R1, data = newdata))# 0.5061
 ######
 
+##########Heli katsetused#####
+#https://docs.google.com/spreadsheets/d/1iDOtbrB-3WCmL4VLl3T0OUsVn2o2LrAl9Otki7g89kI/edit?usp=sharing
+
+#Ilma SSBta!
+#Alustame kõigi võimalike muutujate vaatamist ükshaaval, aga interaktsioonis SSB-ga (kuna algne hüpotees oli et SSB on nö state variable)
+summary(gam(R ~ s(SSB, k = 4), data = d))$r.sq #0.2438
+summary(gam(R ~ s(N, k = 4), data = d))$r.sq #0.0617
+summary(gam(R ~ s(N_2, k = 4), data = d))$r.sq #  0.101
+summary(gam(R ~ s(E1, k = 4), data = d))$r.sq  #0.01795
+summary(gam(R ~ s(E1_2, k = 4), data = d))$r.sq  #0.288
+summary(gam(R ~ s(E2, k = 4), data = d))$r.sq # 0.0101
+summary(gam(R ~ s(E2_2, k = 4), data = d))$r.sq #0.2053
+summary(gam(R ~ s(E3, k = 4), data = d))$r.sq # 0.0988
+summary(gam(R ~ s(E3_2, k = 4), data = d))$r.sq#0.3065  - rannikumerest oli parim korrelatsioon adult E. affinisega mai-juuni perioodil (mitte mai-juuli)
+
+summary(gam(R ~ s(open_N, k = 4), data = d))$r.sq #0.117
+summary(gam(R ~ s(open_E1, k = 4), data = d))$r.sq #0.1729
+summary(gam(R ~ s(open_E2, k = 4), data = d))$r.sq # 0.456 PARIM
+summary(gam(R ~ s(open_E3, k = 4), data = d))$r.sq # 0.244
+summary(gam(R ~ s(wa, k = 4), data = d))$r.sq  # 0.2944
+summary(gam(R ~ s(wa0, k = 4), data = d))$r.sq #-0.018
+summary(gam(R ~ s(may_june, k = 4), data = d))$r.sq   #0.0747
+
+#Step2
+summary(gam(R ~ s(open_E2, k = 4) + s(E3_2, k = 4), data = d)) #0.548 oluline 
+
+#Step3
+summary(gam(R ~ s(open_E2, k = 4) + s(E3_2, k = 4) + s(wa0, k = 4), data = d)) #0.603 jah
+
+#Step4
+summary(gam(R ~ s(open_E2, k = 4) + s(E3_2, k = 4) + s(wa0, k = 4) + s(SSB, k = 4), data = d))
+
+
+#####SSB INT.
+#Step1
+summary(gam(R ~ te(E3_2, SSB, k = 4), data = d))$r.sq# 0.39  - rannikumerest oli parim korrelatsioon adult E. affinisega mai-juuni perioodil (mitte mai-juuli)
+summary(gam(R ~ te(open_E2, SSB, k = 4), data = d))$r.sq # 0.53 - avaosast parim E2 mais
+
+#Step2
+summary(gam(R ~ te(open_E2, SSB, k = 4) + s(E3_2, k=4), data = d))# 0.593
+summary(gam(R ~ te(open_E2, SSB, k = 4) + te(E3_2, SSB, k=4), data = d)) #0.591 
+summary(gam(R ~ te(open_E2, SSB, k = 4) + s(wa0, k=4), data = d))# 0.619 oluline
+summary(gam(R ~ te(open_E2, SSB, k = 4) + te(wa0, SSB, k=4), data = d)) # 0.662  oluline
+
+#Step3
+summary(gam(R ~ te(open_E2, SSB, k = 4) + te(wa0, SSB, k=4) + te(E3_2, SSB, k=4), data = d))#0.688 oluline
+summary(gam(R ~ te(open_E2, SSB, k = 4) + te(wa0, SSB, k=4) + s(E3_2, k=4), data = d))
+
+#Wa, INT! kahtlane
+summary(gam(R ~ te(open_E2, wa0, k = 4), data = d))#0.594 oluline
+
+summary(gam(R ~ te(open_E2, wa0, k = 4)+ s(SSB, k=4), data = d)) #0.619 oluline
+summary(gam(R ~ te(open_E2, wa0, k = 4)+ te(SSB, wa0, k=4), data = d))#0.653 
+summary(gam(R ~ te(open_E2, wa0, k = 4)+ te(E1, wa0, k=4), data = d))#0.677 oluline
+summary(gam(R ~ te(open_E2, wa0, k = 4)+ te(E3, wa0, k=4), data = d))#0.72
+summary(gam(R ~ te(open_E2, wa0, k = 4)+ te(E3_2, wa0, k=4), data = d))# 0.783
+
+summary(gam(R ~ te(open_E2, wa0, k = 4)+ te(E3_2, wa0, k=4)+ te(N, wa0, k=4), data = d))#0.845
+summary(gam(R ~ te(open_E2, wa0, k = 4)+ te(E3_2, wa0, k=4)+ te(SSB, wa0, k=4), data = d))
+
+################
+#SSB INT final model 
+summary(gam(R ~ te(open_E2, SSB, k = 4) + te(wa0, SSB, k=4) + te(E3_2, SSB, k=4), data = d))
+#Proovime kohe ka kui hea on open_E2 + SSB out of sample prediction skill:
+
+newdata = subset(d, select = c("year","R", "SSB", "open_E2"))
+m1 = gam(R ~ te(SSB, open_E2, k = 4), data = newdata)
+newdata$pred_m1 = predict(m1)
+newdata$oos_R1 = NA
+newdata$corr1 = NA
+for(i in 1:nrow(d)){
+  # train new model leaving out the i'th year
+  m1 = gam(R ~ te(SSB, open_E2, k = 4), data = newdata[-i,]) 
+  # Predict R for all years, including for the year that was left out ("out of sample prediction")
+  pred1 = predict(m1, newdata = newdata)  
+  newdata$oos_R1[i] = pred1[i]
+  newdata$corr1[i] = cor(newdata$pred_m1, pred1)
+}
+
+plot(R~year, data = newdata, xlab ="Year", ylab = "R", pch = 16)
+lines(R~year, data = newdata)
+points(oos_R1~year, data = newdata, col = 2, pch = 16)
+lines(oos_R1~year, data = newdata, col = 2, pch = 16)
+plot(R ~ open_E2, data = newdata)
+summary(gam(R ~ s(open_E2, k = 4), data = newdata))
+#R-sq.(adj) =  0.456  
+
+#Create 2D images of te(open_E2, SSB0) and te(wa0, SSB)
+var = d$R
+SSB = d$SSB
+open_E2 = d$open_E2
+wa0 = d$wa0
+m = gam(var ~ te(open_E2, SSB) + te(wa0, SSB))
+SSB = seq(min(SSB), max(SSB), length.out = 100)
+open_E2 = seq(min(open_E2), max(open_E2), length.out = 100)
+predicted = matrix(ncol=length(SSB),nrow = length(open_E2))
+
+for(i in 1:length(open_E2)){ 
+  new.data = data.frame(SSB,open_E2[i], mean(wa0))
+  names(new.data)<-c("SSB","open_E2", "wa0")
+  pred = predict.gam(m, newdata = new.data)
+  predicted[,i] = pred}
+
+predicted[which(se > predicted/2)] = NA
+
+par(mfrow = c(2,1))
+image(predicted,col=matlab.like(20),axes=F , xlab="Open E2", ylab = "SSB")
+contour(predicted,levels = c(1000,1500,2000,2500,3000,3500),add=T)
+par(new = T)
+plot(SSB~open_E2, data = d,pch = 1, xlab = "", ylab ="") # Siit on küll näha et see ala, kus veapiirid suuremad on, ei ole ilma punktideta, pigem on need eriliselt halvasti ennustatud väärtused
+
+
+var = d$R
+SSB = d$SSB
+wa0 = d$wa0
+open_E2 = d$open_E2
+m = gam(var ~ te(open_E2, SSB) + te(wa0,SSB))
+wa0 = seq(min(wa0), max(wa0), length.out = 100)
+SSB = seq(min(SSB), max(SSB), length.out = 100)
+predicted = matrix(ncol=length(wa0),nrow = length(SSB))
+
+for(i in 1:length(wa0)){ 
+  new.data = data.frame(SSB,wa0[i], mean(open_E2))
+  names(new.data)<-c("SSB", "wa0","open_E2")
+  pred = predict.gam(m, newdata = new.data)
+  predicted[,i] = pred}
+
+idx = which(se > predicted/2)
+predicted[idx] = NA
+
+image(predicted,col=matlab.like(20),axes=F , xlab="Winter", ylab = "SSB")
+contour(predicted,levels = c(1000,1500,2000,2500,3000,3500),add=T)
+par(new = T)
+plot(SSB~wa0, data = d,pch = 1, xlab = "", ylab ="") # Siit on küll näha et see ala, kus veapiirid suuremad on, ei ole ilma punktideta, pigem on need eriliselt halvasti ennustatud väärtused
+
+summary(gam(var ~ te(open_E2, SSB) + te(wa0,SSB), data = d))
+
+
+newdata = subset(d, select = c("year","R", "SSB", "open_E2", "wa0"))
+m1 = gam(R ~ te(SSB, open_E2, k = 4)+te(wa0, SSB, k = 4), data = newdata)
+newdata$pred_m1 = predict(m1)
+newdata$oos_R1 = NA
+newdata$corr1 = NA
+
+for(i in 1:nrow(newdata)){
+  # train new model leaving out the i'th year
+  m1 = gam(R ~ te(SSB, open_E2, k = 4) + te(wa0, SSB, k = 4), data = newdata[-i,]) 
+  # Predict R for all years, including for the year that was left out ("out of sample prediction")
+  pred1 = predict(m1, newdata = newdata)  
+  newdata$oos_R1[i] = pred1[i]
+  newdata$corr1[i] = cor(newdata$pred_m1, pred1)
+}
+
+range(newdata$corr1)
+summary(lm(R~oos_R1, data = newdata))
+#Multiple R-squared:  0.5355
+
+#Create 2D images of te(open_E2, SSB0) and te(wa0, SSB) and te(E3_2, SSB) - annab errorit 
+
+######
+#Wa0-ga, ilma SSB
+# jätkub...
+
+
+ 
+ 
+
+
+
+
+
+
+
 
 
 
