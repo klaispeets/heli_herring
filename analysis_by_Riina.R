@@ -310,7 +310,6 @@ summary(lm(R~oos_R1, data = newdata))# 0.5061
 ######
 
 ##########Heli katsetused#####
-#https://docs.google.com/spreadsheets/d/1iDOtbrB-3WCmL4VLl3T0OUsVn2o2LrAl9Otki7g89kI/edit?usp=sharing
 
 #Ilma SSBta!
 #Alustame kõigi võimalike muutujate vaatamist ükshaaval, aga interaktsioonis SSB-ga (kuna algne hüpotees oli et SSB on nö state variable)
@@ -343,36 +342,22 @@ summary(gam(R ~ s(open_E2, k = 4) + s(E3_2, k = 4) + s(wa0, k = 4) + s(SSB, k = 
 
 
 #####SSB INT.
-#Step1
-summary(gam(R ~ te(E3_2, SSB, k = 4), data = d))$r.sq# 0.39  - rannikumerest oli parim korrelatsioon adult E. affinisega mai-juuni perioodil (mitte mai-juuli)
-summary(gam(R ~ te(open_E2, SSB, k = 4), data = d))$r.sq # 0.53 - avaosast parim E2 mais
+#Step1 
+summary(gam(R ~ te(open_E2, SSB, k = 4), data = d)) #0.533
 
 #Step2
-summary(gam(R ~ te(open_E2, SSB, k = 4) + s(E3_2, k=4), data = d))# 0.593
-summary(gam(R ~ te(open_E2, SSB, k = 4) + te(E3_2, SSB, k=4), data = d)) #0.591 
-summary(gam(R ~ te(open_E2, SSB, k = 4) + s(wa0, k=4), data = d))# 0.619 oluline
-summary(gam(R ~ te(open_E2, SSB, k = 4) + te(wa0, SSB, k=4), data = d)) # 0.662  oluline
 
-#Step3
-summary(gam(R ~ te(open_E2, SSB, k = 4) + te(wa0, SSB, k=4) + te(E3_2, SSB, k=4), data = d))#0.688 oluline
-summary(gam(R ~ te(open_E2, SSB, k = 4) + te(wa0, SSB, k=4) + s(E3_2, k=4), data = d))
+summary(gam(R ~ te(open_E2, SSB, k = 4) + te(may_june , SSB, k=4), data = d))#0.591
+summary(gam(R ~ te(open_E2, SSB, k = 4) + te(wa0, SSB, k=4), data = d))#0.662
+#Step 3 - jääb välja praegu 
+summary(gam(R ~ te(open_E2, SSB, k = 4) + te(wa0, SSB, k=4) + te(E3_2, SSB, k=4), data = d))#0.688
+summary(gam(R ~ te(open_E2, SSB, k = 4) + te(wa0, SSB, k=4) + s(N_2, k=4), data = d))
 
-#Wa, INT! kahtlane
-summary(gam(R ~ te(open_E2, wa0, k = 4), data = d))#0.594 oluline
 
-summary(gam(R ~ te(open_E2, wa0, k = 4)+ s(SSB, k=4), data = d)) #0.619 oluline
-summary(gam(R ~ te(open_E2, wa0, k = 4)+ te(SSB, wa0, k=4), data = d))#0.653 
-summary(gam(R ~ te(open_E2, wa0, k = 4)+ te(E1, wa0, k=4), data = d))#0.677 oluline
-summary(gam(R ~ te(open_E2, wa0, k = 4)+ te(E3, wa0, k=4), data = d))#0.72
-summary(gam(R ~ te(open_E2, wa0, k = 4)+ te(E3_2, wa0, k=4), data = d))# 0.783
+#SSB out of sample prediction 
 
-summary(gam(R ~ te(open_E2, wa0, k = 4)+ te(E3_2, wa0, k=4)+ te(N, wa0, k=4), data = d))#0.845
-summary(gam(R ~ te(open_E2, wa0, k = 4)+ te(E3_2, wa0, k=4)+ te(SSB, wa0, k=4), data = d))
-
-################
-#SSB INT final model 
-summary(gam(R ~ te(open_E2, SSB, k = 4) + te(wa0, SSB, k=4) + te(E3_2, SSB, k=4), data = d))
-#Proovime kohe ka kui hea on open_E2 + SSB out of sample prediction skill:
+par(mfrow = c(1, 1), tck=-0.02,mar=c(2.5,2.5,2.5,2.5), mgp = c(1.3,0.3,0))
+#open_E2 + SSB  out of sample prediction skill:
 
 newdata = subset(d, select = c("year","R", "SSB", "open_E2"))
 m1 = gam(R ~ te(SSB, open_E2, k = 4), data = newdata)
@@ -393,8 +378,33 @@ lines(R~year, data = newdata)
 points(oos_R1~year, data = newdata, col = 2, pch = 16)
 lines(oos_R1~year, data = newdata, col = 2, pch = 16)
 plot(R ~ open_E2, data = newdata)
-summary(gam(R ~ s(open_E2, k = 4), data = newdata))
-#R-sq.(adj) =  0.456  
+summary(gam(R ~ s(open_E2, k = 4), data = newdata)) #0.456 
+
+#2D joonis millelt on kehvasti mudeldatud osad valgeks jäetud:
+var = d$R
+SSB = d$SSB
+open_E2 = d$open_E2
+m = gam(var ~ te(SSB, open_E2))
+SSB = seq(min(d$SSB), max(d$SSB), length.out = 100)
+open_E2 = seq(min(d$open_E2), max(d$open_E2), length.out = 100)
+predicted = matrix(ncol=length(SSB),nrow = length(open_E2))
+se =  matrix(ncol=length(SSB),nrow = length(open_E2)) #siia tabelisse lähevad ennustuse standard vead
+for(i in 1:length(open_E2)){ 
+  new.data = data.frame(SSB,open_E2[i])
+  names(new.data)<-c("SSB","open_E2")
+  pred = predict.gam(m, newdata = new.data, se = T)
+  predicted[,i] = pred$fit
+  se[,i] = pred$se.fit
+}
+
+idx = which(se > predicted/2) # Muuda NA-deks see osa maatriksist, kust stanrdard error on > 50% ennustatud R-ist
+predicted[idx] = NA
+
+par(mfrow = c(1,1))
+image(predicted,col=matlab.like(20),axes=F , xlab="open E2 (log-scale)", ylab = "SSB")
+contour(predicted,levels = c(1000,1500,2000,2500,3000,3500),add=T)
+par(new = T)
+plot(SSB~open_E2, data = d,pch = 1, xlab = "", ylab ="") # Siit on küll näha et see ala, kus veapiirid suuremad on, ei ole ilma punktideta, pigem on need eriliselt halvasti ennustatud väärtused
 
 #Create 2D images of te(open_E2, SSB0) and te(wa0, SSB)
 var = d$R
@@ -439,13 +449,37 @@ for(i in 1:length(wa0)){
 idx = which(se > predicted/2)
 predicted[idx] = NA
 
-image(predicted,col=matlab.like(20),axes=F , xlab="Winter", ylab = "SSB")
+image(predicted,col=matlab.like(20),axes=F , xlab="Winter severity", ylab = "SSB")
 contour(predicted,levels = c(1000,1500,2000,2500,3000,3500),add=T)
 par(new = T)
 plot(SSB~wa0, data = d,pch = 1, xlab = "", ylab ="") # Siit on küll näha et see ala, kus veapiirid suuremad on, ei ole ilma punktideta, pigem on need eriliselt halvasti ennustatud väärtused
 
-summary(gam(var ~ te(open_E2, SSB) + te(wa0,SSB), data = d))
+#out of sample 
 
+summary(gam(var ~ te(open_E2, SSB), data = d))#0.533
+
+newdata = subset(d, select = c("year","R", "SSB", "open_E2"))
+m1 = gam(R ~ te(SSB, open_E2, k = 4), data = newdata)
+newdata$pred_m1 = predict(m1)
+newdata$oos_R1 = NA
+newdata$corr1 = NA
+
+for(i in 1:nrow(newdata)){
+  # train new model leaving out the i'th year
+  m1 = gam(R ~ te(SSB, open_E2, k = 4), data = newdata[-i,]) 
+  # Predict R for all years, including for the year that was left out ("out of sample prediction")
+  pred1 = predict(m1, newdata = newdata)  
+  newdata$oos_R1[i] = pred1[i]
+  newdata$corr1[i] = cor(newdata$pred_m1, pred1)
+}
+
+range(newdata$corr1) #0.9949966 0.9999996
+summary(lm(R~oos_R1, data = newdata))# oos_R1 sig; Multiple R-squared:  0.495
+
+par(mfrow = c(1, 1), tck=-0.02,mar=c(2.5,2.5,2.5,2.5), mgp = c(1.3,0.3,0))
+
+# te(open_E2, SSB) + te(wa0,SSB)
+summary(gam(var ~ te(open_E2, SSB) + te(wa0,SSB), data = d))#0.694 
 
 newdata = subset(d, select = c("year","R", "SSB", "open_E2", "wa0"))
 m1 = gam(R ~ te(SSB, open_E2, k = 4)+te(wa0, SSB, k = 4), data = newdata)
@@ -462,15 +496,10 @@ for(i in 1:nrow(newdata)){
   newdata$corr1[i] = cor(newdata$pred_m1, pred1)
 }
 
-range(newdata$corr1)
-summary(lm(R~oos_R1, data = newdata))
-#Multiple R-squared:  0.5355
+range(newdata$corr1) #0.9574075 0.9999924
+summary(lm(R~oos_R1, data = newdata))# oos_R1 sig; Multiple R-squared:  0.5355
 
-#Create 2D images of te(open_E2, SSB0) and te(wa0, SSB) and te(E3_2, SSB) - annab errorit 
-
-######
-#Wa0-ga, ilma SSB
-# jätkub...
+#####################
 
 
  
