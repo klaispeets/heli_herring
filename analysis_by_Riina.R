@@ -31,6 +31,76 @@ d$N[which(d$year == 2001)] = mean(d$N[which(d$year %in% c(2000,2002))])
 d$N_2[which(d$year == 2001)] = mean(d$N_2[which(d$year %in% c(2000,2002))])
 d$E2_2[which(d$year == 1985)] = mean(d$E2_2[which(d$year %in% c(1984,1985,1986))])
 
+
+#Näide kuidas saada sellist asja nagu ma Skype's seletasin:
+#samas saab seda seose kuju muutumist tegelikult visualiseerida ka nii et me
+#1) sorteerime tabeli SSB järgi kasvavalt; 2) fitime ca 35 mudelit,
+#igal järgmisel on 1 aasta juures, ja paneme kõik need jooned samale joonisele 
+#nii et värv muutub pidevalt nt sinisest punasemaks iga järgmise sammuga
+
+par(mfrow=c(2,2))
+d = d[order(d$year),]
+n = 55-19
+R2 = rep(NA, n)
+correlation = rep(NA, n)
+col = matlab.like(n)
+
+for(i in 1:n){
+  set = d[c(1:(19+i)),]
+  m = gam(R ~ s(open_E2, k = 4), data = set)
+  if(i == 1){
+    newdata = data.frame(seq(min(d$open_E2), max(d$open_E2), length.out = 100))
+    names(newdata) = "open_E2"
+    pred1 = predict(m, newdata = newdata)
+    plot(pred1 ~ newdata$open_E2, type = "n", ylab = "Predicted R", xlab = "Log(x+1) abundance of E.affinis", ylim = c(0,4000), main = "Chronological")
+    lines(pred1~newdata$open_E2, col = col[i])
+    R2[i] = summary(m)$r.sq
+  }
+  pred2 = predict(m, newdata = newdata)
+  lines(pred2~newdata$open_E2, col = col[i])
+  R2[i] = summary(m)$r.sq
+  correlation[i] = cor(pred1, pred2)
+}
+
+plot(correlation, xlab = "Step", ylab = "Correlation")
+par(new=T)
+plot(R2, xlab = "", ylab = "", pch = 16, axes = F)
+axis(4)
+
+d = d[order(d$SSB),]
+n = 55-19
+R2 = rep(NA, n)
+correlation = rep(NA, n)
+col = matlab.like(n)
+
+for(i in 1:n){
+  set = d[c(1:(19+i)),]
+  m = gam(R ~ s(open_E2, k = 4), data = set)
+  if(i == 1){
+    newdata = data.frame(seq(min(d$open_E2), max(d$open_E2), length.out = 100))
+    names(newdata) = "open_E2"
+    pred1 = predict(m, newdata = newdata)
+    plot(pred1 ~ newdata$open_E2, type = "n", ylab = "Predicted R", xlab = "Log(x+1) abundance of E.affinis", ylim = c(0,4000), main = "By SSB")
+    lines(pred1~newdata$open_E2, col = col[i])
+    R2[i] = summary(m)$r.sq
+  }
+  pred2 = predict(m, newdata = newdata)
+  lines(pred2~newdata$open_E2, col = col[i])
+  R2[i] = summary(m)$r.sq
+  correlation[i] = cor(pred1, pred2)
+}
+
+plot(correlation, xlab = "Step", ylab = "Correlation")
+par(new=T)
+plot(R2, xlab = "", ylab = "", pch = 16, axes = F)
+axis(4)
+
+
+
+
+
+
+
 #Aegread (siin ei muutnud midagi)
 
 par(mfrow = c(3, 3), tck=-0.02,mar=c(2.5,2.5,2.5,2.5), mgp = c(1.3,0.3,0))
@@ -132,7 +202,7 @@ for(i in 1:length(open_E2)){
   pred = predict.gam(m, newdata = new.data, se = T)
   predicted[,i] = pred$fit
   se[,i] = pred$se.fit
-  }
+}
 
 idx = which(se > predicted/2) # Muuda NA-deks see osa maatriksist, kust stanrdard error on > 50% ennustatud R-ist
 predicted[idx] = NA
@@ -1216,7 +1286,7 @@ if(TRUE){
   par(new=T)
   plot(meanE3 ~ meanSSB, type = "line", col = grey(0.5), axes = F, ylab = "", xlab = "")
   axis(4);mtext("Mean E3", side = 4,  line = 1.5, cex = 0.8)
- 
+  
   
   #may_june
   slope = rep(NA, n)
