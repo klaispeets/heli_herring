@@ -66,6 +66,7 @@ plot(correlation, xlab = "Step", ylab = "Correlation")
 par(new=T)
 plot(R2, xlab = "", ylab = "", pch = 16, axes = F)
 axis(4)
+mtext("R-sq", side = 4,  line = 1.3, cex = 0.8)
 
 d = d[order(d$SSB),]
 n = 55-19
@@ -94,8 +95,68 @@ plot(correlation, xlab = "Step", ylab = "Correlation")
 par(new=T)
 plot(R2, xlab = "", ylab = "", pch = 16, axes = F)
 axis(4)
+mtext("R-sq", side = 4,  line = 1.3, cex = 0.8)
+
+#wa
+par(mfrow=c(2,2))
+d = d[order(d$year),]
+n = 55-19
+R2 = rep(NA, n)
+correlation = rep(NA, n)
+col = matlab.like(n)
+
+for(i in 1:n){
+  set = d[c(1:(19+i)),]
+  m = gam(R ~ s(wa0, k = 4), data = set)
+  if(i == 1){
+    newdata = data.frame(seq(min(d$wa0), max(d$wa0), length.out = 100))
+    names(newdata) = "wa0"
+    pred1 = predict(m, newdata = newdata)
+    plot(pred1 ~ newdata$wa0, type = "n", ylab = "Predicted R", xlab = "Winter severity", ylim = c(0,4000), main = "Chronological")
+    lines(pred1~newdata$wa0, col = col[i])
+    R2[i] = summary(m)$r.sq
+  }
+  pred2 = predict(m, newdata = newdata)
+  lines(pred2~newdata$wa0, col = col[i])
+  R2[i] = summary(m)$r.sq
+  correlation[i] = cor(pred1, pred2)
+}
+
+plot(correlation, xlab = "Step", ylab = "Correlation")
+par(new=T)
+plot(R2, xlab = "", ylab = "", pch = 16, axes = F)
+axis(4)
+mtext("R-sq", side = 4,  line = 1.3, cex = 0.8)
 
 
+d = d[order(d$SSB),]
+n = 55-19
+R2 = rep(NA, n)
+correlation = rep(NA, n)
+col = matlab.like(n)
+
+for(i in 1:n){
+  set = d[c(1:(19+i)),]
+  m = gam(R ~ s(wa0, k = 4), data = set)
+  if(i == 1){
+    newdata = data.frame(seq(min(d$wa0), max(d$wa0), length.out = 100))
+    names(newdata) = "wa0"
+    pred1 = predict(m, newdata = newdata)
+    plot(pred1 ~ newdata$wa0, type = "n", ylab = "Predicted R", xlab = "Winter severity", ylim = c(0,4000), main = "By SSB")
+    lines(pred1~newdata$wa0, col = col[i])
+    R2[i] = summary(m)$r.sq
+  }
+  pred2 = predict(m, newdata = newdata)
+  lines(pred2~newdata$wa0, col = col[i])
+  R2[i] = summary(m)$r.sq
+  correlation[i] = cor(pred1, pred2)
+}
+
+plot(correlation, xlab = "Step", ylab = "Correlation")
+par(new=T)
+plot(R2, xlab = "", ylab = "", pch = 16, axes = F)
+axis(4)
+mtext("R-sq", side = 4,  line = 1.3, cex = 0.8)
 
 
 
