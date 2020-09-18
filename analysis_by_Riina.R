@@ -14,6 +14,8 @@ plot(gam(R~s(wa, k = 4), data = final))  # positiivne seos
 final$wa0 = final$wa[c(2:nrow(final), NA)]  #0 ja 1 aasta vahel
 summary(gam(R~s(wa0, k = 4), data = final)) 
 plot(gam(R~s(wa0, k = 4), data = final))
+
+#Table prep
 final$sun = NULL # Jätame päikese välja, see lõikab osa aastaid ära ja ei olnud oluline ka
 
 
@@ -30,6 +32,8 @@ names(d) = c("year","R","SSB","N","E1","E2","E3","N_2","E1_2", "E2_2", "E3_2", "
 d$N[which(d$year == 2001)] = mean(d$N[which(d$year %in% c(2000,2002))])
 d$N_2[which(d$year == 2001)] = mean(d$N_2[which(d$year %in% c(2000,2002))])
 d$E2_2[which(d$year == 1985)] = mean(d$E2_2[which(d$year %in% c(1984,1985,1986))])
+
+#Prep end
 
 
 #Näide kuidas saada sellist asja nagu ma Skype's seletasin:
