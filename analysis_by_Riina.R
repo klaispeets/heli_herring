@@ -345,7 +345,110 @@ summary(gam(R ~ s(open_E2, k = 4) + s(wa0, k = 4)  + s(SSB, k = 4) , data = d))#
 
 #
 ##Out of sample prediction skill (with and without interactions)
+#out of sample 
 
+summary(gam(var ~ te(open_E2, SSB), data = d))#0.533
+
+newdata = subset(d, select = c("year","R", "SSB", "open_E2"))
+m1 = gam(R ~ te(SSB, open_E2, k = 4), data = newdata)
+newdata$pred_m1 = predict(m1)
+newdata$oos_R1 = NA
+newdata$corr1 = NA
+
+for(i in 1:nrow(newdata)){
+  # train new model leaving out the i'th year
+  m1 = gam(R ~ te(SSB, open_E2, k = 4), data = newdata[-i,]) 
+  # Predict R for all years, including for the year that was left out ("out of sample prediction")
+  pred1 = predict(m1, newdata = newdata)  
+  newdata$oos_R1[i] = pred1[i]
+  newdata$corr1[i] = cor(newdata$pred_m1, pred1)
+}
+
+range(newdata$corr1) #0.9949966 0.9999996
+summary(lm(R~oos_R1, data = newdata))# oos_R1 sig; Multiple R-squared:  0.495
+
+par(mfrow = c(1, 1), tck=-0.02,mar=c(2.5,2.5,2.5,2.5), mgp = c(1.3,0.3,0))
+
+# te(open_E2, SSB) + te(wa0,SSB)
+summary(gam(var ~ te(open_E2, SSB) + te(wa0,SSB), data = d))#0.694 
+
+newdata = subset(d, select = c("year","R", "SSB", "open_E2", "wa0"))
+m1 = gam(R ~ te(SSB, open_E2, k = 4)+te(wa0, SSB, k = 4), data = newdata)
+newdata$pred_m1 = predict(m1)
+newdata$oos_R1 = NA
+newdata$corr1 = NA
+
+for(i in 1:nrow(newdata)){
+  # train new model leaving out the i'th year
+  m1 = gam(R ~ te(SSB, open_E2, k = 4) + te(wa0, SSB, k = 4), data = newdata[-i,]) 
+  # Predict R for all years, including for the year that was left out ("out of sample prediction")
+  pred1 = predict(m1, newdata = newdata)  
+  newdata$oos_R1[i] = pred1[i]
+  newdata$corr1[i] = cor(newdata$pred_m1, pred1)
+}
+
+range(newdata$corr1) #0.9574075 0.9999924
+summary(lm(R~oos_R1, data = newdata))# oos_R1 sig; Multiple R-squared:  0.5355
+
+
+#without interaction 
+
+newdata = subset(d, select = c("year","R",  "open_E2"))
+m1 = gam(R ~ s(open_E2, k = 4), data = newdata)
+newdata$pred_m1 = predict(m1)
+newdata$oos_R1 = NA
+newdata$corr1 = NA
+
+for(i in 1:nrow(newdata)){
+  # train new model leaving out the i'th year
+  m1 = gam(R ~ s(open_E2, k = 4), data = newdata[-i,])
+  # Predict R for all years, including for the year that was left out ("out of sample prediction")
+  pred1 = predict(m1, newdata = newdata)  
+  newdata$oos_R1[i] = pred1[i]
+  newdata$corr1[i] = cor(newdata$pred_m1, pred1)
+}
+
+range(newdata$corr1) #0.9954998 1.0000000
+summary(lm(R~oos_R1, data = newdata))# oos_R1 sig; Multiple R-squared:  0.411
+
+#
+newdata = subset(d, select = c("year","R",  "open_E2", "wa0"))
+m1 = gam(R ~ s(open_E2, k = 4) + s(wa0, k = 4), data = newdata)
+newdata$pred_m1 = predict(m1)
+newdata$oos_R1 = NA
+newdata$corr1 = NA
+
+for(i in 1:nrow(newdata)){
+  # train new model leaving out the i'th year
+  m1 = gam(R ~ s(open_E2, k = 4) + s(wa0, k = 4), data = newdata[-i,])
+  # Predict R for all years, including for the year that was left out ("out of sample prediction")
+  pred1 = predict(m1, newdata = newdata)  
+  newdata$oos_R1[i] = pred1[i]
+  newdata$corr1[i] = cor(newdata$pred_m1, pred1)
+}
+
+range(newdata$corr1) #0.9839043 0.9999981
+summary(lm(R~oos_R1, data = newdata))# oos_R1 sig; Multiple R-squared:  0.41
+
+#
+newdata = subset(d, select = c("year","R",  "open_E2", "wa0", "SSB"))
+m1 = gam(R ~ s(open_E2, k = 4) + s(wa0, k = 4) + s(SSB, k = 4), data = newdata)
+newdata$pred_m1 = predict(m1)
+newdata$oos_R1 = NA
+newdata$corr1 = NA
+
+for(i in 1:nrow(newdata)){
+  # train new model leaving out the i'th year
+  m1 = gam(R ~ s(open_E2, k = 4) + s(wa0, k = 4) + s(SSB, k = 4), data = newdata[-i,])
+  # Predict R for all years, including for the year that was left out ("out of sample prediction")
+  pred1 = predict(m1, newdata = newdata)  
+  newdata$oos_R1[i] = pred1[i]
+  newdata$corr1[i] = cor(newdata$pred_m1, pred1)
+}
+
+range(newdata$corr1) #0.9733129 0.9999986
+summary(lm(R~oos_R1, data = newdata))# oos_R1 sig; Multiple R-squared:  0.4654
+####################
 
 
 
