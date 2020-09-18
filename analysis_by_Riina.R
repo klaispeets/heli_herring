@@ -318,10 +318,33 @@ plot(SSB~wa0, data = d,pch = 1, xlab = "", ylab ="")
 
 #####
 ###GAM without interactions (forward selection) 
+#Step 1:
+summary(gam(R ~ s(SSB, k = 4), data = d))$r.sq #0.2438
+summary(gam(R ~ s(N, k = 4), data = d))$r.sq #0.0617
+summary(gam(R ~ s(N_2, k = 4), data = d))$r.sq #  0.101
+summary(gam(R ~ s(E1, k = 4), data = d))$r.sq  #0.01795
+summary(gam(R ~ s(E1_2, k = 4), data = d))$r.sq  #0.288
+summary(gam(R ~ s(E2, k = 4), data = d))$r.sq # 0.0101
+summary(gam(R ~ s(E2_2, k = 4), data = d))$r.sq #0.2053
+summary(gam(R ~ s(E3, k = 4), data = d))$r.sq # 0.0988
+summary(gam(R ~ s(E3_2, k = 4), data = d))#0.3065  - rannikumerest oli parim korrelatsioon adult E. affinisega mai-juuni perioodil (mitte mai-juuli)
 
+summary(gam(R ~ s(open_N, k = 4), data = d))$r.sq #0.117
+summary(gam(R ~ s(open_E1, k = 4), data = d))$r.sq #0.1729
+summary(gam(R ~ s(open_E2, k = 4), data = d))$r.sq # 0.456 PARIM
+summary(gam(R ~ s(open_E3, k = 4), data = d))$r.sq # 0.244
+summary(gam(R ~ s(wa, k = 4), data = d))$r.sq  # 0.2944
+summary(gam(R ~ s(wa0, k = 4), data = d))$r.sq #-0.018
+summary(gam(R ~ s(may_june, k = 4), data = d))$r.sq   #0.0747
 
+#Step 2_best - not mixing open and coastal food
+summary(gam(R ~ s(open_E2, k = 4) + s(wa0, k = 4), data = d))#0.522
 
+#Step 3_best
+summary(gam(R ~ s(open_E2, k = 4) + s(wa0, k = 4)  + s(SSB, k = 4) , data = d))#0.598
 
+#
+##Out of sample prediction skill (with and without interactions)
 
 
 
