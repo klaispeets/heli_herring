@@ -1103,7 +1103,12 @@ lines(oos_R1~year, data = newdata, col = 2)
 lines(oos_R2~year, data= newdata, col = 3)
 text(c(1960,1960,1960), c(7000,6300,5600), labels = c("Observed", "Model 1", "Model 2"), col = c(1,2,3), pos = 4)
 
+####
+#SWA
+#SSB, WA, WA0, open_E2
+newdata = subset(d, select = c("year","R", "SSB", "open_E2", "wa", "wa0"))
 n = nrow(newdata)-14
+
 if(TRUE){
   #Test whether the correlation between R and SSB depends on the mean level of SSB
   type = "chronological" # alternative: "chronological" #lisasin siia } juurde, muidu jookseb kinni (Heli)
@@ -1121,7 +1126,7 @@ if(TRUE){
   }
   
   
-  par(mfrow = c(3, 2), tck=-0.02,mar=c(2.5,2.5,2.5,2.8), mgp = c(1.3,0.3,0))
+  par(mfrow = c(2, 2), tck=-0.02,mar=c(2.5,2.5,2.5,2.8), mgp = c(1.3,0.3,0))
   plot(slope ~ meanSSB, xlab = xlabel, ylab = "Slope of lm(R ~ SSB)")
   idx = which(p<0.05)
   points(slope[idx]~meanSSB[idx], pch = 16)
@@ -1131,10 +1136,30 @@ if(TRUE){
   plot(newdata$SSB ~ newdata$year, type = "line", col = grey(0.5), axes = F, ylab = "", xlab = "")
   axis(4);mtext("Mean SSB", side = 4,  line = 1.5, cex = 0.8, col = grey(0.5))
   
+  #E2 open
+  slope = rep(NA, n)
+  p = rep(NA, n)
+  meanE2_open = rep(NA,n)
+  for(i in 1:n){
+    idx = c(i: (i+14))
+    m = lm(R ~ open_E2, data = newdata[idx,])
+    slope[i] = summary(m)$coefficients[2,1]
+    p[i] = summary(m)$coefficients[2,4]
+    meanE2_open[i] = round(mean(newdata$open_E2[idx]), digits=2)}
+  
+  plot(slope ~ meanSSB, xlab = xlabel, ylab = "Slope of lm(R ~ O_E2)")
+  idx = which(p<0.05)
+  points(slope[idx]~meanSSB[idx], pch = 16)
+  abline(h = 0, lwd = 0.5)
+  mtext(" b)", side = 3, adj = 0, line = -1.5, cex = 0.9)
+  par(new=T)
+  plot(meanE2_open ~ meanSSB, type = "line", col = grey(0.5), axes = F, ylab = "", xlab = "")
+  axis(4);mtext("Mean E2_open", side = 4,  line = 1.5, cex = 0.8)
+  
   #WA
   slope = rep(NA, n)
   p = rep(NA, n)
-  meanWA = rep(NA, n)
+  meanWA = rep(NA,n)
   for(i in 1:n){
     idx = c(i: (i+14))
     m = lm(R ~ wa, data = newdata[idx,])
@@ -1146,10 +1171,66 @@ if(TRUE){
   idx = which(p<0.05)
   points(slope[idx]~meanSSB[idx], pch = 16)
   abline(h = 0, lwd = 0.5)
-  mtext(" b)", side = 3, adj = 0, line = -1.5, cex = 0.9)
+  mtext(" c)", side = 3, adj = 0, line = -1.5, cex = 0.9)
   par(new=T)
   plot(meanWA ~ meanSSB, type = "line", col = grey(0.5), axes = F, ylab = "", xlab = "")
   axis(4);mtext("Mean wa", side = 4,  line = 1.5, cex = 0.8)
+  
+  #WA0
+  slope = rep(NA, n)
+  p = rep(NA, n)
+  meanWA0 = rep(NA,n)
+  for(i in 1:n){
+    idx = c(i: (i+14))
+    m = lm(R ~ wa0, data = newdata[idx,])
+    slope[i] = summary(m)$coefficients[2,1]
+    p[i] = summary(m)$coefficients[2,4]
+    meanWA0[i] = round(mean(newdata$wa0[idx]), digits=2)}
+  
+  plot(slope ~ meanSSB, xlab = xlabel, ylab = "Slope of lm(R ~ wa0)")
+  idx = which(p<0.05)
+  points(slope[idx]~meanSSB[idx], pch = 16)
+  abline(h = 0, lwd = 0.5)
+  mtext(" d)", side = 3, adj = 0, line = -1.5, cex = 0.9)
+  par(new=T)
+  plot(meanWA0 ~ meanSSB, type = "line", col = grey(0.5), axes = F, ylab = "", xlab = "")
+  axis(4);mtext("Mean wa0", side = 4,  line = 1.5, cex = 0.8)
+}
+  
+  
+  
+
+####SWA_all
+
+newdata = subset(d, select = c("year","R", "SSB", "N","E1","E2","E3", "N_2", "E1_2", "E2_2", "E3_2", "open_N", "open_E1", "open_E2", "open_E3", "wa", "wa0", "may_june"))
+n = nrow(newdata)-14
+
+if(TRUE){
+  #Test whether the correlation between R and SSB depends on the mean level of SSB
+  type = "chronological" # alternative: "chronological" #lisasin siia } juurde, muidu jookseb kinni (Heli)
+  if(type=="SSB"){newdata = newdata[order(newdata$SSB),]}else{newdata = newdata[order(newdata$year),]}
+  if(type=="SSB"){xlabel = "Mean SSB"}else{xlabel = "Middle year"}
+  meanSSB = rep(NA,n)
+  slope = rep(NA, n)
+  p = rep(NA, n)
+  for(i in 1:n){
+    idx = c(i: (i+14))
+    m = lm(R ~ SSB, data = newdata[idx,])
+    slope[i] = summary(m)$coefficients[2,1]
+    p[i] = summary(m)$coefficients[2,4]
+    if(type=="SSB"){meanSSB[i] = round(mean(newdata$SSB[idx]), digits=0)}else{meanSSB[i] = round(mean(newdata$year[idx]), digits=0)}
+  }
+  
+  
+  par(mfrow = c(4, 4), tck=-0.02,mar=c(2.5,2.5,2.5,2.8), mgp = c(1.3,0.3,0))
+  plot(slope ~ meanSSB, xlab = xlabel, ylab = "Slope of lm(R ~ SSB)")
+  idx = which(p<0.05)
+  points(slope[idx]~meanSSB[idx], pch = 16)
+  abline(h = 0, lwd = 0.5)
+  mtext(" a)", side = 3, adj = 0, line = -1.5, cex = 0.9)
+  par(new=T)
+  plot(newdata$SSB ~ newdata$year, type = "line", col = grey(0.5), axes = F, ylab = "", xlab = "")
+  axis(4);mtext("Mean SSB", side = 4,  line = 1.5, cex = 0.8, col = grey(0.5))
   
   
   #N
@@ -1167,7 +1248,7 @@ if(TRUE){
   idx = which(p<0.05)
   points(slope[idx]~meanSSB[idx], pch = 16)
   abline(h = 0, lwd = 0.5)
-  mtext(" c)", side = 3, adj = 0, line = -1.5, cex = 0.9)
+  mtext(" b)", side = 3, adj = 0, line = -1.5, cex = 0.9)
   par(new=T)
   plot(meanN ~ meanSSB, type = "line", col = grey(0.5), axes = F, ylab = "", xlab = "")
   axis(4);mtext("Mean N", side = 4,  line = 1.5, cex = 0.8)
@@ -1187,7 +1268,7 @@ if(TRUE){
   idx = which(p<0.05)
   points(slope[idx]~meanSSB[idx], pch = 16)
   abline(h = 0, lwd = 0.5)
-  mtext(" d)", side = 3, adj = 0, line = -1.5, cex = 0.9)
+  mtext(" c)", side = 3, adj = 0, line = -1.5, cex = 0.9)
   par(new=T)
   plot(meanE1 ~ meanSSB, type = "line", col = grey(0.5), axes = F, ylab = "", xlab = "")
   axis(4);mtext("Mean E1", side = 4,  line = 1.5, cex = 0.8)
@@ -1207,7 +1288,7 @@ if(TRUE){
   idx = which(p<0.05)
   points(slope[idx]~meanSSB[idx], pch = 16)
   abline(h = 0, lwd = 0.5)
-  mtext(" e)", side = 3, adj = 0, line = -1.5, cex = 0.9)
+  mtext(" d)", side = 3, adj = 0, line = -1.5, cex = 0.9)
   par(new=T)
   plot(meanE2 ~ meanSSB, type = "line", col = grey(0.5), axes = F, ylab = "", xlab = "")
   axis(4);mtext("Mean E2", side = 4,  line = 1.5, cex = 0.8)
@@ -1228,125 +1309,172 @@ if(TRUE){
   idx = which(p<0.05)
   points(slope[idx]~meanSSB[idx], pch = 16)
   abline(h = 0, lwd = 0.5)
-  mtext(" f)", side = 3, adj = 0, line = -1.5, cex = 0.9)
+  mtext(" e)", side = 3, adj = 0, line = -1.5, cex = 0.9)
   par(new=T)
   plot(meanE3 ~ meanSSB, type = "line", col = grey(0.5), axes = F, ylab = "", xlab = "")
   axis(4);mtext("Mean E3", side = 4,  line = 1.5, cex = 0.8)
-}
-
-
-##Open
-newdata = subset(d, select = c("year","R", "SSB", "wa", "open_N","open_E1","open_E2","open_E3", "sun", "may_june"))
-
-n = nrow(newdata)-14
-if(TRUE){
-  #Test whether the correlation between R and SSB depends on the mean level of SSB
-  type = "SSB" # alternative: "chronological" #lisasin siia } juurde, muidu jookseb kinni (Heli)
-  if(type=="SSB"){newdata = newdata[order(newdata$SSB),]}else{newdata = newdata[order(newdata$year),]}
-  if(type=="SSB"){xlabel = "Mean SSB"}else{xlabel = "Middle year"}
-  meanSSB = rep(NA,n)
+  
+  #N_2
   slope = rep(NA, n)
   p = rep(NA, n)
+  meanN_2 = rep(NA, n)
   for(i in 1:n){
     idx = c(i: (i+14))
-    m = lm(R ~ SSB, data = newdata[idx,])
+    m = lm(R ~ N_2, data = newdata[idx,])
     slope[i] = summary(m)$coefficients[2,1]
     p[i] = summary(m)$coefficients[2,4]
-    if(type=="SSB"){meanSSB[i] = round(mean(newdata$SSB[idx]), digits=0)}else{meanSSB[i] = round(mean(newdata$year[idx]), digits=0)}
-  }
+    meanN_2[i] = round(mean(newdata$N_2[idx]), digits=2)}
   
-  
-  par(mfrow = c(3, 3), tck=-0.02,mar=c(2.5,2.5,2.5,2.8), mgp = c(1.3,0.3,0))
-  plot(slope ~ meanSSB, xlab = xlabel, ylab = "Slope of lm(R ~ SSB)")
+  plot(slope ~ meanSSB, xlab = xlabel, ylab = "Slope of lm(R ~ N_2)")
   idx = which(p<0.05)
   points(slope[idx]~meanSSB[idx], pch = 16)
   abline(h = 0, lwd = 0.5)
-  mtext(" a)", side = 3, adj = 0, line = -1.5, cex = 0.9)
-  #par(new=T)
-  #plot(newdata$SSB ~ newdata$year, type = "line", col = grey(0.5), axes = F, ylab = "", xlab = "")
-  #axis(4);mtext("Mean SSB", side = 4,  line = 1.5, cex = 0.8, col = grey(0.5))
+  mtext(" f)", side = 3, adj = 0, line = -1.5, cex = 0.9)
+  par(new=T)
+  plot(meanN_2 ~ meanSSB, type = "line", col = grey(0.5), axes = F, ylab = "", xlab = "")
+  axis(4);mtext("Mean N_2", side = 4,  line = 1.5, cex = 0.8)
   
-  
-  #N
+  #E1_2
   slope = rep(NA, n)
   p = rep(NA, n)
-  meanN = rep(NA, n)
+  meanE1_2 = rep(NA,n)
+  for(i in 1:n){
+    idx = c(i: (i+14))
+    m = lm(R ~ E1_2, data = newdata[idx,])
+    slope[i] = summary(m)$coefficients[2,1]
+    p[i] = summary(m)$coefficients[2,4]
+    meanE1_2[i] = round(mean(newdata$E1_2[idx]), digits=2)}
+  
+  plot(slope ~ meanSSB, xlab = xlabel, ylab = "Slope of lm(R ~ E1_2)")
+  idx = which(p<0.05)
+  points(slope[idx]~meanSSB[idx], pch = 16)
+  abline(h = 0, lwd = 0.5)
+  mtext(" g)", side = 3, adj = 0, line = -1.5, cex = 0.9)
+  par(new=T)
+  plot(meanE1_2 ~ meanSSB, type = "line", col = grey(0.5), axes = F, ylab = "", xlab = "")
+  axis(4);mtext("Mean E1_2", side = 4,  line = 1.5, cex = 0.8)
+  
+  #E2_2
+  slope = rep(NA, n)
+  p = rep(NA, n)
+  meanE2_2 = rep(NA,n)
+  for(i in 1:n){
+    idx = c(i: (i+14))
+    m = lm(R ~ E2_2, data = newdata[idx,])
+    slope[i] = summary(m)$coefficients[2,1]
+    p[i] = summary(m)$coefficients[2,4]
+    meanE2_2[i] = round(mean(newdata$E2_2[idx]), digits=2)}
+  
+  plot(slope ~ meanSSB, xlab = xlabel, ylab = "Slope of lm(R ~ E2_2)")
+  idx = which(p<0.05)
+  points(slope[idx]~meanSSB[idx], pch = 16)
+  abline(h = 0, lwd = 0.5)
+  mtext(" h)", side = 3, adj = 0, line = -1.5, cex = 0.9)
+  par(new=T)
+  plot(meanE2_2 ~ meanSSB, type = "line", col = grey(0.5), axes = F, ylab = "", xlab = "")
+  axis(4);mtext("Mean E2_2", side = 4,  line = 1.5, cex = 0.8)
+  
+  
+  #E3_2
+  slope = rep(NA, n)
+  p = rep(NA, n)
+  meanE3_2 = rep(NA,n)
+  for(i in 1:n){
+    idx = c(i: (i+14))
+    m = lm(R ~ E3_2, data = newdata[idx,])
+    slope[i] = summary(m)$coefficients[2,1]
+    p[i] = summary(m)$coefficients[2,4]
+    meanE3_2[i] = round(mean(newdata$E3_2[idx]), digits=2)}
+  
+  plot(slope ~ meanSSB, xlab = xlabel, ylab = "Slope of lm(R ~ E3_2)")
+  idx = which(p<0.05)
+  points(slope[idx]~meanSSB[idx], pch = 16)
+  abline(h = 0, lwd = 0.5)
+  mtext(" i)", side = 3, adj = 0, line = -1.5, cex = 0.9)
+  par(new=T)
+  plot(meanE3_2 ~ meanSSB, type = "line", col = grey(0.5), axes = F, ylab = "", xlab = "")
+  axis(4);mtext("Mean E3_2", side = 4,  line = 1.5, cex = 0.8)
+  
+  #N_open
+  slope = rep(NA, n)
+  p = rep(NA, n)
+  meanN_open = rep(NA, n)
   for(i in 1:n){
     idx = c(i: (i+14))
     m = lm(R ~ open_N, data = newdata[idx,])
     slope[i] = summary(m)$coefficients[2,1]
     p[i] = summary(m)$coefficients[2,4]
-    meanN[i] = round(mean(newdata$open_N[idx]), digits=2)}
+    meanN_open[i] = round(mean(newdata$open_N[idx]), digits=2)}
   
   plot(slope ~ meanSSB, xlab = xlabel, ylab = "Slope of lm(R ~ O_N)")
   idx = which(p<0.05)
   points(slope[idx]~meanSSB[idx], pch = 16)
   abline(h = 0, lwd = 0.5)
-  mtext(" b)", side = 3, adj = 0, line = -1.5, cex = 0.9)
+  mtext(" j)", side = 3, adj = 0, line = -1.5, cex = 0.9)
   par(new=T)
-  plot(meanN ~ meanSSB, type = "line", col = grey(0.5), axes = F, ylab = "", xlab = "")
-  axis(4);mtext("Mean N", side = 4,  line = 1.5, cex = 0.8)
+  plot(meanN_open ~ meanSSB, type = "line", col = grey(0.5), axes = F, ylab = "", xlab = "")
+  axis(4);mtext("Mean N_open", side = 4,  line = 1.5, cex = 0.8)
   
-  #E1
+  #E1_open
   slope = rep(NA, n)
   p = rep(NA, n)
-  meanE1 = rep(NA,n)
+  meanE1_open = rep(NA,n)
   for(i in 1:n){
     idx = c(i: (i+14))
     m = lm(R ~ open_E1, data = newdata[idx,])
     slope[i] = summary(m)$coefficients[2,1]
     p[i] = summary(m)$coefficients[2,4]
-    meanE1[i] = round(mean(newdata$open_E1[idx]), digits=2)}
+    meanE1_open[i] = round(mean(newdata$open_E1[idx]), digits=2)}
   
   plot(slope ~ meanSSB, xlab = xlabel, ylab = "Slope of lm(R ~ O_E1)")
   idx = which(p<0.05)
   points(slope[idx]~meanSSB[idx], pch = 16)
   abline(h = 0, lwd = 0.5)
-  mtext(" c)", side = 3, adj = 0, line = -1.5, cex = 0.9)
+  mtext(" k)", side = 3, adj = 0, line = -1.5, cex = 0.9)
   par(new=T)
-  plot(meanE1 ~ meanSSB, type = "line", col = grey(0.5), axes = F, ylab = "", xlab = "")
-  axis(4);mtext("Mean E1", side = 4,  line = 1.5, cex = 0.8)
+  plot(meanE1_open ~ meanSSB, type = "line", col = grey(0.5), axes = F, ylab = "", xlab = "")
+  axis(4);mtext("Mean E1_open", side = 4,  line = 1.5, cex = 0.8)
   
-  #E2
+  #E2 open
   slope = rep(NA, n)
   p = rep(NA, n)
-  meanE2 = rep(NA,n)
+  meanE2_open = rep(NA,n)
   for(i in 1:n){
     idx = c(i: (i+14))
     m = lm(R ~ open_E2, data = newdata[idx,])
     slope[i] = summary(m)$coefficients[2,1]
     p[i] = summary(m)$coefficients[2,4]
-    meanE2[i] = round(mean(newdata$open_E2[idx]), digits=2)}
+    meanE2_open[i] = round(mean(newdata$open_E2[idx]), digits=2)}
   
   plot(slope ~ meanSSB, xlab = xlabel, ylab = "Slope of lm(R ~ O_E2)")
   idx = which(p<0.05)
   points(slope[idx]~meanSSB[idx], pch = 16)
   abline(h = 0, lwd = 0.5)
-  mtext(" d)", side = 3, adj = 0, line = -1.5, cex = 0.9)
+  mtext(" l)", side = 3, adj = 0, line = -1.5, cex = 0.9)
   par(new=T)
-  plot(meanE2 ~ meanSSB, type = "line", col = grey(0.5), axes = F, ylab = "", xlab = "")
-  axis(4);mtext("Mean E2", side = 4,  line = 1.5, cex = 0.8)
+  plot(meanE2_open ~ meanSSB, type = "line", col = grey(0.5), axes = F, ylab = "", xlab = "")
+  axis(4);mtext("Mean E2_open", side = 4,  line = 1.5, cex = 0.8)
   
   
-  #E3
+  #E3_open
   slope = rep(NA, n)
   p = rep(NA, n)
-  meanE3 = rep(NA,n)
+  meanE3_open = rep(NA,n)
   for(i in 1:n){
     idx = c(i: (i+14))
     m = lm(R ~ open_E3, data = newdata[idx,])
     slope[i] = summary(m)$coefficients[2,1]
     p[i] = summary(m)$coefficients[2,4]
-    meanE3[i] = round(mean(newdata$open_E3[idx]), digits=2)}
+    meanE3_open[i] = round(mean(newdata$open_E3[idx]), digits=2)}
   
   plot(slope ~ meanSSB, xlab = xlabel, ylab = "Slope of lm(R ~ O_E3)")
   idx = which(p<0.05)
   points(slope[idx]~meanSSB[idx], pch = 16)
   abline(h = 0, lwd = 0.5)
-  mtext(" e)", side = 3, adj = 0, line = -1.5, cex = 0.9)
+  mtext(" m)", side = 3, adj = 0, line = -1.5, cex = 0.9)
   par(new=T)
-  plot(meanE3 ~ meanSSB, type = "line", col = grey(0.5), axes = F, ylab = "", xlab = "")
-  axis(4);mtext("Mean E3", side = 4,  line = 1.5, cex = 0.8)
+  plot(meanE3_open ~ meanSSB, type = "line", col = grey(0.5), axes = F, ylab = "", xlab = "")
+  axis(4);mtext("Mean E3_open", side = 4,  line = 1.5, cex = 0.8)
   
   
   #may_june
@@ -1364,7 +1492,7 @@ if(TRUE){
   idx = which(p<0.05)
   points(slope[idx]~meanSSB[idx], pch = 16)
   abline(h = 0, lwd = 0.5)
-  mtext(" g)", side = 3, adj = 0, line = -1.5, cex = 0.9)
+  mtext(" n)", side = 3, adj = 0, line = -1.5, cex = 0.9)
   par(new=T)
   plot(mean_summer ~ meanSSB, type = "line", col = grey(0.5), axes = F, ylab = "", xlab = "")
   axis(4);mtext("Mean temperature", side = 4,  line = 1.5, cex = 0.8)
@@ -1384,8 +1512,36 @@ if(TRUE){
   idx = which(p<0.05)
   points(slope[idx]~meanSSB[idx], pch = 16)
   abline(h = 0, lwd = 0.5)
-  mtext(" h)", side = 3, adj = 0, line = -1.5, cex = 0.9)
+  mtext(" o)", side = 3, adj = 0, line = -1.5, cex = 0.9)
   par(new=T)
   plot(meanWA ~ meanSSB, type = "line", col = grey(0.5), axes = F, ylab = "", xlab = "")
   axis(4);mtext("Mean wa", side = 4,  line = 1.5, cex = 0.8)
+  
+  #WA0
+  slope = rep(NA, n)
+  p = rep(NA, n)
+  meanWA0 = rep(NA,n)
+  for(i in 1:n){
+    idx = c(i: (i+14))
+    m = lm(R ~ wa0, data = newdata[idx,])
+    slope[i] = summary(m)$coefficients[2,1]
+    p[i] = summary(m)$coefficients[2,4]
+    meanWA0[i] = round(mean(newdata$wa0[idx]), digits=2)}
+  
+  plot(slope ~ meanSSB, xlab = xlabel, ylab = "Slope of lm(R ~ wa0)")
+  idx = which(p<0.05)
+  points(slope[idx]~meanSSB[idx], pch = 16)
+  abline(h = 0, lwd = 0.5)
+  mtext(" p)", side = 3, adj = 0, line = -1.5, cex = 0.9)
+  par(new=T)
+  plot(meanWA0 ~ meanSSB, type = "line", col = grey(0.5), axes = F, ylab = "", xlab = "")
+  axis(4);mtext("Mean wa0", side = 4,  line = 1.5, cex = 0.8)
+  
 }
+
+
+
+
+
+
+
