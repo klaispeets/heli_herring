@@ -35,6 +35,210 @@ d$E2_2[which(d$year == 1985)] = mean(d$E2_2[which(d$year %in% c(1984,1985,1986))
 
 #Prep end
 
+####
+#SWA
+#SSB, WA, WA0, open_E2
+newdata = subset(d, select = c("year","R", "SSB", "open_E2", "wa", "wa0"))
+n = nrow(newdata)-14
+
+if(TRUE){
+  #Test whether the correlation between R and SSB depends on the mean level of SSB
+  type = "chronological" # alternative: "chronological" #lisasin siia } juurde, muidu jookseb kinni (Heli)
+  if(type=="SSB"){newdata = newdata[order(newdata$SSB),]}else{newdata = newdata[order(newdata$year),]}
+  if(type=="SSB"){xlabel = "Mean SSB"}else{xlabel = "Middle year"}
+  meanSSB = rep(NA,n)
+  slope = rep(NA, n)
+  p = rep(NA, n)
+  for(i in 1:n){
+    idx = c(i: (i+14))
+    m = lm(R ~ SSB, data = newdata[idx,])
+    slope[i] = summary(m)$coefficients[2,1]
+    p[i] = summary(m)$coefficients[2,4]
+    if(type=="SSB"){meanSSB[i] = round(mean(newdata$SSB[idx]), digits=0)}else{meanSSB[i] = round(mean(newdata$year[idx]), digits=0)}
+  }
+  
+  
+  par(mfrow = c(2, 2), tck=-0.02,mar=c(2.5,2.5,2.5,2.8), mgp = c(1.3,0.3,0))
+  plot(slope ~ meanSSB, xlab = xlabel, ylab = "Slope of lm(R ~ SSB)")
+  idx = which(p<0.05)
+  points(slope[idx]~meanSSB[idx], pch = 16)
+  abline(h = 0, lwd = 0.5)
+  mtext(" a)", side = 3, adj = 0, line = -1.5, cex = 0.9)
+  par(new=T)
+  plot(newdata$SSB ~ newdata$year, type = "line", col = grey(0.5), axes = F, ylab = "", xlab = "")
+  axis(4);mtext("Mean SSB", side = 4,  line = 1.5, cex = 0.8, col = grey(0.5))
+  
+  #E2 open
+  slope = rep(NA, n)
+  p = rep(NA, n)
+  meanE2_open = rep(NA,n)
+  for(i in 1:n){
+    idx = c(i: (i+14))
+    m = lm(R ~ open_E2, data = newdata[idx,])
+    slope[i] = summary(m)$coefficients[2,1]
+    p[i] = summary(m)$coefficients[2,4]
+    meanE2_open[i] = round(mean(newdata$open_E2[idx]), digits=2)}
+  
+  plot(slope ~ meanSSB, xlab = xlabel, ylab = "Slope of lm(R ~ O_E2)")
+  idx = which(p<0.05)
+  points(slope[idx]~meanSSB[idx], pch = 16)
+  abline(h = 0, lwd = 0.5)
+  mtext(" b)", side = 3, adj = 0, line = -1.5, cex = 0.9)
+  par(new=T)
+  plot(meanE2_open ~ meanSSB, type = "line", col = grey(0.5), axes = F, ylab = "", xlab = "")
+  axis(4);mtext("Mean E2_open", side = 4,  line = 1.5, cex = 0.8)
+  
+  #WA
+  slope = rep(NA, n)
+  p = rep(NA, n)
+  meanWA = rep(NA,n)
+  for(i in 1:n){
+    idx = c(i: (i+14))
+    m = lm(R ~ wa, data = newdata[idx,])
+    slope[i] = summary(m)$coefficients[2,1]
+    p[i] = summary(m)$coefficients[2,4]
+    meanWA[i] = round(mean(newdata$wa[idx]), digits=2)}
+  
+  plot(slope ~ meanSSB, xlab = xlabel, ylab = "Slope of lm(R ~ wa)")
+  idx = which(p<0.05)
+  points(slope[idx]~meanSSB[idx], pch = 16)
+  abline(h = 0, lwd = 0.5)
+  mtext(" c)", side = 3, adj = 0, line = -1.5, cex = 0.9)
+  par(new=T)
+  plot(meanWA ~ meanSSB, type = "line", col = grey(0.5), axes = F, ylab = "", xlab = "")
+  axis(4);mtext("Mean wa", side = 4,  line = 1.5, cex = 0.8)
+  
+  #WA0
+  slope = rep(NA, n)
+  p = rep(NA, n)
+  meanWA0 = rep(NA,n)
+  for(i in 1:n){
+    idx = c(i: (i+14))
+    m = lm(R ~ wa0, data = newdata[idx,])
+    slope[i] = summary(m)$coefficients[2,1]
+    p[i] = summary(m)$coefficients[2,4]
+    meanWA0[i] = round(mean(newdata$wa0[idx]), digits=2)}
+  
+  plot(slope ~ meanSSB, xlab = xlabel, ylab = "Slope of lm(R ~ wa0)")
+  idx = which(p<0.05)
+  points(slope[idx]~meanSSB[idx], pch = 16)
+  abline(h = 0, lwd = 0.5)
+  mtext(" d)", side = 3, adj = 0, line = -1.5, cex = 0.9)
+  par(new=T)
+  plot(meanWA0 ~ meanSSB, type = "line", col = grey(0.5), axes = F, ylab = "", xlab = "")
+  axis(4);mtext("Mean wa0", side = 4,  line = 1.5, cex = 0.8)
+}
+
+####
+#Growing window analysis
+#SSB, Open_E2, WA, WA0
+
+par(mfrow=c(4,2))
+d = d[order(d$year),]
+n = 55-19
+R2 = rep(NA, n)
+correlation = rep(NA, n)
+col = matlab.like(n)
+
+for(i in 1:n){
+  set = d[c(1:(19+i)),]
+  m = gam(R ~ s(SSB, k = 4), data = set)
+  if(i == 1){
+    newdata = data.frame(seq(min(d$SSB), max(d$SSB), length.out = 100))
+    names(newdata) = "SSB"
+    pred1 = predict(m, newdata = newdata)
+    plot(pred1 ~ newdata$SSB, type = "n", ylab = "Predicted R", xlab = "SSB", ylim = c(0,4000), main = "Chronological")
+    lines(pred1~newdata$SSB, col = col[i])
+    R2[i] = summary(m)$r.sq
+  }
+  pred2 = predict(m, newdata = newdata)
+  lines(pred2~newdata$SSB, col = col[i])
+  R2[i] = summary(m)$r.sq
+  correlation[i] = cor(pred1, pred2)
+}
+
+plot(correlation, xlab = "Step", ylab = "Correlation")
+par(new=T)
+plot(R2, xlab = "", ylab = "", pch = 16, axes = F)
+axis(4)
+mtext("R-sq", side = 4,  line = 1.3, cex = 0.8)
+
+for(i in 1:n){
+  set = d[c(1:(19+i)),]
+  m = gam(R ~ s(open_E2, k = 4), data = set)
+  if(i == 1){
+    newdata = data.frame(seq(min(d$open_E2), max(d$open_E2), length.out = 100))
+    names(newdata) = "open_E2"
+    pred1 = predict(m, newdata = newdata)
+    plot(pred1 ~ newdata$open_E2, type = "n", ylab = "Predicted R", xlab = "Log(x+1) abundance of E.affinis", ylim = c(0,4000), main = "Chronological")
+    lines(pred1~newdata$open_E2, col = col[i])
+    R2[i] = summary(m)$r.sq
+  }
+  pred2 = predict(m, newdata = newdata)
+  lines(pred2~newdata$open_E2, col = col[i])
+  R2[i] = summary(m)$r.sq
+  correlation[i] = cor(pred1, pred2)
+}
+
+plot(correlation, xlab = "Step", ylab = "Correlation")
+par(new=T)
+plot(R2, xlab = "", ylab = "", pch = 16, axes = F)
+axis(4)
+mtext("R-sq", side = 4,  line = 1.3, cex = 0.8)
+
+for(i in 1:n){
+  set = d[c(1:(19+i)),]
+  m = gam(R ~ s(wa, k = 4), data = set)
+  if(i == 1){
+    newdata = data.frame(seq(min(d$wa), max(d$wa), length.out = 100))
+    names(newdata) = "wa"
+    pred1 = predict(m, newdata = newdata)
+    plot(pred1 ~ newdata$wa, type = "n", ylab = "Predicted R", xlab = "Winter severity", ylim = c(0,4000), main = "Chronological")
+    lines(pred1~newdata$wa, col = col[i])
+    R2[i] = summary(m)$r.sq
+  }
+  pred2 = predict(m, newdata = newdata)
+  lines(pred2~newdata$wa, col = col[i])
+  R2[i] = summary(m)$r.sq
+  correlation[i] = cor(pred1, pred2)
+}
+
+plot(correlation, xlab = "Step", ylab = "Correlation")
+par(new=T)
+plot(R2, xlab = "", ylab = "", pch = 16, axes = F)
+axis(4)
+mtext("R-sq", side = 4,  line = 1.3, cex = 0.8)
+
+for(i in 1:n){
+  set = d[c(1:(19+i)),]
+  m = gam(R ~ s(wa0, k = 4), data = set)
+  if(i == 1){
+    newdata = data.frame(seq(min(d$wa0), max(d$wa0), length.out = 100))
+    names(newdata) = "wa0"
+    pred1 = predict(m, newdata = newdata)
+    plot(pred1 ~ newdata$wa0, type = "n", ylab = "Predicted R", xlab = "Winter severity age 0-1", ylim = c(0,4000), main = "Chronological")
+    lines(pred1~newdata$wa0, col = col[i])
+    R2[i] = summary(m)$r.sq
+  }
+  pred2 = predict(m, newdata = newdata)
+  lines(pred2~newdata$wa0, col = col[i])
+  R2[i] = summary(m)$r.sq
+  correlation[i] = cor(pred1, pred2)
+}
+
+plot(correlation, xlab = "Step", ylab = "Correlation")
+par(new=T)
+plot(R2, xlab = "", ylab = "", pch = 16, axes = F)
+axis(4)
+mtext("R-sq", side = 4,  line = 1.3, cex = 0.8)
+
+#####
+#GAM with interactions (forward selection) 
+
+
+
+
+#VANA OSA
 
 #Näide kuidas saada sellist asja nagu ma Skype's seletasin:
 #samas saab seda seose kuju muutumist tegelikult visualiseerida ka nii et me
