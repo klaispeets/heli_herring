@@ -235,6 +235,96 @@ mtext("R-sq", side = 4,  line = 1.3, cex = 0.8)
 #####
 #GAM with interactions (forward selection) 
 
+#Step1 
+summary(gam(R ~ te(open_E2, SSB, k = 4), data = d)) #0.533
+
+#Step2
+summary(gam(R ~ te(open_E2, SSB, k = 4) + te(wa0, SSB, k=4), data = d))#0.662
+
+
+#2D joonis millelt on kehvasti mudeldatud osad valgeks jäetud:
+var = d$R
+SSB = d$SSB
+open_E2 = d$open_E2
+m = gam(var ~ te(SSB, open_E2))
+SSB = seq(min(d$SSB), max(d$SSB), length.out = 100)
+open_E2 = seq(min(d$open_E2), max(d$open_E2), length.out = 100)
+predicted = matrix(ncol=length(SSB),nrow = length(open_E2))
+se =  matrix(ncol=length(SSB),nrow = length(open_E2)) #siia tabelisse lähevad ennustuse standard vead
+for(i in 1:length(open_E2)){ 
+  new.data = data.frame(SSB,open_E2[i])
+  names(new.data)<-c("SSB","open_E2")
+  pred = predict.gam(m, newdata = new.data, se = T)
+  predicted[,i] = pred$fit
+  se[,i] = pred$se.fit
+}
+
+idx = which(se > predicted/2) # Muuda NA-deks see osa maatriksist, kust stanrdard error on > 50% ennustatud R-ist
+predicted[idx] = NA
+
+par(mfrow = c(1,1))
+image(predicted,col=matlab.like(20),axes=F , xlab="open E2 (log-scale)", ylab = "SSB")
+contour(predicted,levels = c(1000,1500,2000,2500,3000,3500),add=T)
+par(new = T)
+plot(SSB~open_E2, data = d,pch = 1, xlab = "", ylab ="") # Siit on küll näha et see ala, kus veapiirid suuremad on, ei ole ilma punktideta, pigem on need eriliselt halvasti ennustatud väärtused
+
+#Create 2D images of te(open_E2, SSB0) and te(wa0, SSB)
+var = d$R
+SSB = d$SSB
+open_E2 = d$open_E2
+wa0 = d$wa0
+m = gam(var ~ te(open_E2, SSB) + te(wa0, SSB))
+SSB = seq(min(SSB), max(SSB), length.out = 100)
+open_E2 = seq(min(open_E2), max(open_E2), length.out = 100)
+predicted = matrix(ncol=length(SSB),nrow = length(open_E2))
+
+for(i in 1:length(open_E2)){ 
+  new.data = data.frame(SSB,open_E2[i], mean(wa0))
+  names(new.data)<-c("SSB","open_E2", "wa0")
+  pred = predict.gam(m, newdata = new.data)
+  predicted[,i] = pred}
+
+predicted[which(se > predicted/2)] = NA
+
+par(mfrow = c(1,2))
+image(predicted,col=matlab.like(20),axes=F , xlab="Open E2", ylab = "SSB")
+contour(predicted,levels = c(1000,1500,2000,2500,3000,3500),add=T)
+par(new = T)
+plot(SSB~open_E2, data = d,pch = 1, xlab = "", ylab ="")  
+
+
+var = d$R
+SSB = d$SSB
+wa0 = d$wa0
+open_E2 = d$open_E2
+m = gam(var ~ te(open_E2, SSB) + te(wa0,SSB))
+wa0 = seq(min(wa0), max(wa0), length.out = 100)
+SSB = seq(min(SSB), max(SSB), length.out = 100)
+predicted = matrix(ncol=length(wa0),nrow = length(SSB))
+
+for(i in 1:length(wa0)){ 
+  new.data = data.frame(SSB,wa0[i], mean(open_E2))
+  names(new.data)<-c("SSB", "wa0","open_E2")
+  pred = predict.gam(m, newdata = new.data)
+  predicted[,i] = pred}
+
+idx = which(se > predicted/2)
+predicted[idx] = NA
+
+image(predicted,col=matlab.like(20),axes=F , xlab="Winter severity", ylab = "SSB")
+contour(predicted,levels = c(1000,1500,2000,2500,3000,3500),add=T)
+par(new = T)
+plot(SSB~wa0, data = d,pch = 1, xlab = "", ylab ="") 
+
+#####
+###GAM without interactions (forward selection) 
+
+
+
+
+
+
+
 
 
 
