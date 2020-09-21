@@ -135,6 +135,7 @@ if(TRUE){
 
 par(mfrow=c(4,2))
 d = d[order(d$year),]
+#d=d[order(d$year, decreasing = TRUE),] #kahanevas järjekorras
 n = 55-19
 R2 = rep(NA, n)
 correlation = rep(NA, n)
