@@ -25,7 +25,8 @@ final$complete = ifelse(final$complete==0, "yes", "no")
 
 #Nüüd jälle 55 aastat
 #Kasutame alguses ainult neid ridu kus koik muutujad olemas
-d = final[which(final$complete == "yes"),]
+final=final[which(final$year %in% c(1958:2015)),]
+d=final
 
 #Selle rea pidin lisama, kuna ma tegin veidi data_prep skripti ümber; ja nüüd osad tulbanimed olid teised kui edasises skriptis
 names(d) = c("year","R","SSB","N","E1","E2","E3","N_2","E1_2", "E2_2", "E3_2", "open_N",   "open_E1",  "open_E2",  "open_E3",  "wa","may_june", "complete","wa0" )
@@ -38,16 +39,18 @@ d$E2_2[which(d$year == 1985)] = mean(d$E2_2[which(d$year %in% c(1984,1985,1986))
 
 #Aegread SSB, R, wa, wa0, open_E2
 
-par(mfrow = c(1, 3), tck=-0.02,mar=c(2.5,2.5,2.5,2.5), mgp = c(1.3,0.3,0))
+par(mfrow = c(3, 1))
+par(mfrow = c(3, 1), tck=-0.02,mar=c(2.5,2.5,2.5,2.5), mgp = c(1.3,0.3,0))
+
 
 plot(SSB ~ year, data = d, pch = 16, 
      col = grey(0.7), 
-     axes = F,
+     axes = T,
      ylab = "SSB (x1000 tons)", xlab="Year")
 
 lines(SSB ~ year, data = final, col = grey(0.7))
 axis(2)
-axis(1, at = c(1950, 1960, 1970, 1980, 1990, 2000, 2010, 2015))
+axis(1, at = c(1955, 1960,1965, 1970,1975, 1980,1985, 1990, 1995, 2000, 2005, 2010, 2015))
 lines(c(1958, 1964),c(120, 120), col = grey(0.7))
 lines(c(1958, 1964), c(100, 100))
 points(1961, 120, pch = 16, col = grey(0.7))
@@ -58,15 +61,16 @@ plot(R ~ year, data = d, pch = 16, axes = F, ylab = "", xlab = "")
 lines(R ~ year, data = d)
 axis(4)
 mtext(expression(paste("R (",10^6," individuals)")), side = 4, line = 1.5, cex = 0.8)
-mtext("R, SSB", side = 3, adj = 0, line = 0, cex = .8) 
+mtext("a) R, SSB", side = 3, adj = 0, line = 0, cex = .8) 
+
 
 plot(open_E1 ~ year, data = d, pch = 16, 
      col = grey(0.7), 
-     axes = F,
+     axes = T,
      ylab = expression(paste("Abudance ln(ind. ",m**-2,")")), xlab="Year", ylim=c(0,14))
 lines(open_E1 ~ year, data = final, col = grey(0.7))
 axis(2)
-axis(1, at = c(1950, 1960, 1970, 1980, 1990, 2000, 2010, 2015))
+axis(1, at = c(1955, 1960,1965, 1970,1975, 1980,1985, 1990, 1995, 2000, 2005, 2010, 2015))
 lines(c(2006, 2014),c(5, 5), col = grey(0.7))
 lines(c(2006, 2014), c(3.5, 3.5), col=1)
 lines(c(2006, 2014),c(2, 2), col = 96, lty=2)
@@ -80,22 +84,27 @@ lines(d$open_E2 ~ d$year, col = 1)
 par(new = T)
 plot(d$open_E3 ~ d$year, axes= F, pch=16, ylab="", xlab="", col = 96)
 lines(d$open_E3 ~ d$year, col = 96, lty=2, pch=0.8)
-mtext("E.affinis", side = 3, adj = 0, line = 0, cex = .8) 
+mtext("b) Abundance of E. affinis", side = 3, adj = 0, line = 0, cex = .8) 
 
-plot(d$wa ~ d$year, axes=F, ylab="Sum of neg. daily air temp.(°C)", xlab="Year", pch = 16, ylim=c(-900,0))
+
+
+plot(d$wa ~ d$year, axes=T, ylab="Sum of neg. daily air temp.(°C)", xlab="Year", pch = 16, ylim=c(-900,0))
 lines(d$wa ~ d$year)
 axis(2)
-axis(1, at = c(1950, 1960, 1970, 1980, 1990, 2000, 2010, 2015))
+axis(1, at = c(1955, 1960,1965, 1970,1975, 1980,1985, 1990, 1995, 2000, 2005, 2010, 2015))
 lines(c(1966, 1972),c(-20, -20), col = 1)
 lines(c(1966, 1972), c(-100, -100), col = 96)
 points(1969, -20, pch = 16, col = 1)
 points(1969, -100,pch=16, col = 96)
-text(c(1960, 1960),c(-20, -100), labels = c("WS0", "WS1"), pos = 4)
+text(c(1961, 1961),c(-20, -100), labels = c("WS0", "WS1"), pos = 4)
 par(new = T)
 plot(d$wa0 ~ d$year, axes=F, ylab="", xlab="", pch = 16, col = 96)
 lines(d$wa0 ~ d$year, col = 96)
-mtext("Winter severity (0 & 1)", side=3, adj=0, cex= 0.8)
+mtext("c) Winter severity (0 & 1)", side=3, adj=0, cex= 0.8)
 
+
+#
+d = final[which(final$complete == "yes"),]
 
 #GAM without interactions
 summary(gam(R ~ s(open_E2, k = 4), data = d)) # 0.456 PARIM
@@ -107,22 +116,22 @@ par(mfrow = c(1, 2), mar = c(2.5, 2.5, 2, 1), mgp = c(1.3, 0.3, 0), tck = -0.02,
 names(newdata) = "open_E2"
 newdata$wa0 = median((d$wa0))
 pred = predict(final, newdata = newdata, se = T)
-plot(R ~ open_E2, data = d, col = rgb(0,0,0,alpha = 0.2), pch = 16, xlab = expression(paste("ln(ind. ",m**-2,")")), ylab = expression(paste("R (",10^6," individuals)")), axes = F); axis(1); axis(2)
+plot(R ~ open_E2, data = d, col = rgb(0,0,0,alpha = 0.2), pch = 16, xlab = expression(paste("Abudance ln(ind. ",m**-2,")")), ylab = expression(paste("R (",10^6," individuals)")), axes = T); axis(1); axis(2)
 lines(pred$fit ~ newdata$open_E2)
 lines(pred$fit + 2 * pred$se.fit ~ newdata$open_E2, lty = 3)
 lines(pred$fit - 2 * pred$se.fit ~ newdata$open_E2, lty = 3)
-mtext("E. affinis (stage IV-V)", side=3, adj=0, cex= 0.8)
+mtext("a) partial effect of E. affinis (stage IV-V)", side=3, adj=0, cex= 0.8)
 
 final=gam(R ~ s(open_E2, k = 4) + s(wa0, k = 4), data = d)
 newdata = data.frame(sort(unique(d$wa0)))
 names(newdata) = "wa0"
 newdata$open_E2 = median((d$open_E2))
 pred = predict(final, newdata = newdata, se = T)
-plot(R ~ wa0, data = d, col = rgb(0,0,0,alpha = 0.2), pch = 16, xlab = "Sum of neg. daily air temp.(°C)", ylab = expression(paste("R (",10^6," individuals)")), axes = F); axis(1); axis(2)
+plot(R ~ wa0, data = d, col = rgb(0,0,0,alpha = 0.2), pch = 16, xlab = "Sum of neg. daily air temp.(°C)", ylab = expression(paste("R (",10^6," individuals)")), axes = T); axis(1); axis(2)
 lines(pred$fit ~ newdata$wa0)
 lines(pred$fit + 2 * pred$se.fit ~ newdata$wa0, lty = 3)
 lines(pred$fit - 2 * pred$se.fit ~ newdata$wa0, lty = 3)
-mtext("Winter severity (1)", side=3, adj=0, cex= 0.8)
+mtext("b) partial effect of winter severity (1)", side=3, adj=0, cex= 0.8)
 
 #
 #GAM with interactions (forward selection) 
@@ -179,11 +188,11 @@ for(i in 1:length(open_E2)){
 predicted[which(se > predicted/2)] = NA
 
 par(mfrow = c(1,2))
-image(predicted,col=matlab.like(20),axes=F , xlab=expression(paste("ln(ind. ",m**-2,")")), ylab = "SSB (x1000 tons)")
+image(predicted,col=matlab.like(20),axes=F , xlab=expression(paste("Abudance ln(ind. ",m**-2,")")), ylab = "SSB (x1000 tons)")
 contour(predicted,levels = c(1000,1500,2000,2500,3000,3500,4000,4500, 5000),add=T)
 par(new = T)
 plot(SSB~open_E2, data = d,pch="", xlab = "", ylab ="")  
-mtext("E. affinis (stage IV-V)", side=3, adj=0, cex= 0.8)
+mtext("a) partial effect of E. affinis (stage IV-V)", side=3, adj=0, cex= 0.8)
 
 var = d$R
 SSB = d$SSB
@@ -207,7 +216,7 @@ image(predicted,col=matlab.like(20),axes=F , xlab="Sum of neg. daily air temp.(�
 contour(predicted,levels = c(1000,1500,2000,2500,3000,3500, 4000, 4500, 5000),add=T)
 par(new = T)
 plot(SSB~wa0, data = d,pch = "", xlab = "", ylab ="")
-mtext("Winter severity (1)", side=3, adj=0, cex= 0.8)
+mtext("b) partial effect of winter severity (1)", side=3, adj=0, cex= 0.8)
 #####
 ##Out of sample prediction skill (with and without interactions)
 
@@ -238,7 +247,7 @@ lines(R~year, data = newdata)
 points(oos_R1~year, data = newdata, col = 2, pch = 16)
 lines(oos_R1~year, data = newdata, col = 2, pch = 16)
 #plot(R ~ open_E2, data = newdata)
-mtext("Model 1, step 1", side=3, adj=0, cex= 0.8)
+mtext("a) M1, step 1", side=3, adj=0, cex= 0.8)
 text(c(1960,1960), c(6600,5900), labels = c("Observed", "Predicted"), col = c(1,2), pos = 4, cex=0.7)
 
 #Step2
@@ -265,8 +274,8 @@ lines(R~year, data = newdata)
 points(oos_R1~year, data = newdata, col = 2, pch = 16)
 lines(oos_R1~year, data = newdata, col = 2, pch = 16)
 #plot(R ~ open_E2, data = newdata)
-mtext("Model 1, step 2", side=3, adj=0, cex= 0.8)
-text(c(1960,1960), c(6600,5900), labels = c("Observed", "Predicted"), col = c(1,2), pos = 4, cex=0.7)
+mtext("b) M1, step 2", side=3, adj=0, cex= 0.8)
+#text(c(1960,1960), c(6600,5900), labels = c("Observed", "Predicted"), col = c(1,2), pos = 4, cex=0.7)
 
 #OoS with interaction
 #Step 1
@@ -297,8 +306,8 @@ lines(R~year, data = newdata)
 points(oos_R1~year, data = newdata, col = 2, pch = 16)
 lines(oos_R1~year, data = newdata, col = 2, pch = 16)
 #plot(R ~ open_E2, data = newdata)
-mtext("Model 2, step 1", side=3, adj=0, cex= 0.8)
-text(c(1960,1960), c(6600,5900), labels = c("Observed", "Predicted"), col = c(1,2), pos = 4, cex=0.7)
+mtext("c) M2, step 1", side=3, adj=0, cex= 0.8)
+#text(c(1960,1960), c(6600,5900), labels = c("Observed", "Predicted"), col = c(1,2), pos = 4, cex=0.7)
 
 #Step2: te(open_E2, SSB) + te(wa0,SSB)
 summary(gam(var ~ te(open_E2, SSB) + te(wa0,SSB), data = d))#0.694 
@@ -325,8 +334,8 @@ plot(R~year, data = newdata, xlab ="Year", ylab =expression(paste("R (",10^6," i
 lines(R~year, data = newdata)
 points(oos_R1~year, data = newdata, col = 2, pch = 16)
 lines(oos_R1~year, data = newdata, col = 2, pch = 16)
-mtext("Model 2, step 2", side=3, adj=0, cex= 0.8)
-text(c(1960,1960), c(6600,5900), labels = c("Observed", "Predicted"), col = c(1,2), pos = 4, cex=0.7)
+mtext("d) M2, step 2", side=3, adj=0, cex= 0.8)
+#text(c(1960,1960), c(6600,5900), labels = c("Observed", "Predicted"), col = c(1,2), pos = 4, cex=0.7)
 
 
 #SWA
@@ -350,7 +359,7 @@ if(TRUE){
   }
   
   
-  par(mfrow = c(2, 2), tck=-0.02,mar=c(2.5,2.5,2.5,2.8), mgp = c(1.3,0.3,0))
+  par(mfrow = c(3, 1), tck=-0.02,mar=c(2.5,2.5,2.5,2.8), mgp = c(1.3,0.3,0))
   plot(slope ~ meanSSB, xlab = xlabel, ylab = "Slope of lm(R-SSB)")
   idx = which(p<0.05)
   axis(2)
@@ -360,7 +369,7 @@ if(TRUE){
   par(new=T)
   plot(newdata$SSB ~ newdata$year, type = "line", col = grey(0.5), axes = F, ylab = "", xlab = "")
   axis(4);mtext("Mean SSB (x1000 tons)", side = 4,  line = 1.5, cex = 0.7, col = grey(0.5))
-  mtext("a", side = 3,  line = 0.5, adj=0, cex = 0.8)
+  mtext("a)", side = 3,  line = 0.5, adj=0, cex = 0.8)
   
   #E2 open
   slope = rep(NA, n)
@@ -380,27 +389,27 @@ if(TRUE){
   par(new=T)
   plot(meanE2_open ~ meanSSB, type = "line", col = grey(0.5), axes = F, ylab = "", xlab = "")
   axis(4);mtext("Mean ln(ind. ,m-2)) abund.", side = 4,  line = 1.5, cex = 0.7, col = grey(0.5))
-  mtext("b", side = 3, line = 0.5, adj=0, cex = 0.8)
+  mtext("b)", side = 3, line = 0.5, adj=0, cex = 0.8)
   
   #WA
-  slope = rep(NA, n)
-  p = rep(NA, n)
-  meanWA = rep(NA,n)
-  for(i in 1:n){
-    idx = c(i: (i+14))
-    m = lm(R ~ wa, data = newdata[idx,])
-    slope[i] = summary(m)$coefficients[2,1]
-    p[i] = summary(m)$coefficients[2,4]
-    meanWA[i] = round(mean(newdata$wa[idx]), digits=2)}
+  #slope = rep(NA, n)
+  #p = rep(NA, n)
+  #meanWA = rep(NA,n)
+  #for(i in 1:n){
+    #idx = c(i: (i+14))
+    #m = lm(R ~ wa, data = newdata[idx,])
+    #slope[i] = summary(m)$coefficients[2,1]
+    #p[i] = summary(m)$coefficients[2,4]
+    #meanWA[i] = round(mean(newdata$wa[idx]), digits=2)}
   
-  plot(slope ~ meanSSB, xlab = xlabel, ylab = "Slope of lm(R-WS (0)")
-  idx = which(p<0.05)
-  points(slope[idx]~meanSSB[idx], pch = 16)
-  abline(h = 0, lwd = 0.5)
-  par(new=T)
-  plot(meanWA ~ meanSSB, type = "line", col = grey(0.5), axes = F, ylab = "", xlab = "")
-  axis(4);mtext("Mean WS °C (0)", side = 4,  line = 1.5, cex = 0.7, col = grey(0.5))
-  mtext("c", side = 3,  line = 0.5, adj=0, cex = 0.8)
+  #plot(slope ~ meanSSB, xlab = xlabel, ylab = "Slope of lm(R-WS (0)")
+  #idx = which(p<0.05)
+  #points(slope[idx]~meanSSB[idx], pch = 16)
+  #abline(h = 0, lwd = 0.5)
+  #par(new=T)
+  #plot(meanWA ~ meanSSB, type = "line", col = grey(0.5), axes = F, ylab = "", xlab = "")
+  #axis(4);mtext("Mean WS °C (0)", side = 4,  line = 1.5, cex = 0.7, col = grey(0.5))
+  #mtext("c", side = 3,  line = 0.5, adj=0, cex = 0.8)
   
   #WA0
   slope = rep(NA, n)
@@ -419,8 +428,8 @@ if(TRUE){
   abline(h = 0, lwd = 0.5)
   par(new=T)
   plot(meanWA0 ~ meanSSB, type = "line", col = grey(0.5), axes = F, ylab = "", xlab = "")
-  axis(4);mtext("Mean WS °C (1)", side = 4,  line = 1.5, cex = 0.7, col = grey(0.5))
-  mtext("d", side = 3,  line = 0.5, adj=0, cex = 0.8)
+  axis(4);mtext("Mean WS C (1)", side = 4,  line = 1.5, cex = 0.7, col = grey(0.5))
+  mtext("c)", side = 3,  line = 0.5, adj=0, cex = 0.8)
 }
 
 
@@ -428,7 +437,7 @@ if(TRUE){
 #Growing window analysis
 #SSB, Open_E2, WA, WA0
 
-par(mfrow=c(4,2))
+par(mfrow=c(3,2))
 d = d[order(d$year),]
 #d=d[order(d$year, decreasing = TRUE),] #kahanevas järjekorras
 n = 55-19
@@ -443,16 +452,17 @@ for(i in 1:n){
     newdata = data.frame(seq(min(d$SSB), max(d$SSB), length.out = 100))
     names(newdata) = "SSB"
     pred1 = predict(m, newdata = newdata)
-    plot(pred1 ~ newdata$SSB, type = "n", ylab = "Predicted R", xlab = "x1000 tons", ylim = c(0,4000), main="SSB")
+    plot(pred1 ~ newdata$SSB, type = "n", ylab = "Predicted R", xlab = "x1000 tons", ylim = c(0,4000))
     lines(pred1~newdata$SSB, col = col[i])
     R2[i] = summary(m)$r.sq
+    mtext("a) SSB", side = 3,  line = 0.5, adj=0, cex = 0.8)
   }
   pred2 = predict(m, newdata = newdata)
   lines(pred2~newdata$SSB, col = col[i])
   R2[i] = summary(m)$r.sq
   correlation[i] = cor(pred1, pred2)
-  #legend(3000,160, legend=c(20:55), col=c(1:(19+i)), bty="n", pt.cex=1, cex=0.6, lty=1)
 }
+
 
 #plot(correlation, xlab = "Step", ylab = "Correlation")
 #par(new=T)
@@ -467,9 +477,10 @@ for(i in 1:n){
     newdata = data.frame(seq(min(d$open_E2), max(d$open_E2), length.out = 100))
     names(newdata) = "open_E2"
     pred1 = predict(m, newdata = newdata)
-    plot(pred1 ~ newdata$open_E2, type = "n", ylab = "Predicted R", xlab = expression(paste("ln(ind. ",m**-2,")")), ylim = c(0,4000), main="E.affinis (stage IV-V)")
+    plot(pred1 ~ newdata$open_E2, type = "n", ylab = "Predicted R", xlab = expression(paste("Abudance ln(ind. ",m**-2,")")), ylim = c(0,4000))
     lines(pred1~newdata$open_E2, col = col[i])
     R2[i] = summary(m)$r.sq
+    mtext("b) E.affinis (stage IV-V)", side = 3,  line = 0.5, adj=0, cex = 0.8)
   }
   pred2 = predict(m, newdata = newdata)
   lines(pred2~newdata$open_E2, col = col[i])
@@ -484,8 +495,8 @@ plot(R2, xlab = "Step", ylab = "R-sq", pch = 16, axes = T)
 #axis(4)
 #mtext("R-sq", side = 4,  line = 1.3, cex = 0.6)
 
-for(i in 1:n){
-  set = d[c(1:(19+i)),]
+#for(i in 1:n){
+  #set = d[c(1:(19+i)),]
   m = gam(R ~ s(wa, k = 4), data = set)
   if(i == 1){
     newdata = data.frame(seq(min(d$wa), max(d$wa), length.out = 100))
@@ -501,7 +512,7 @@ for(i in 1:n){
   correlation[i] = cor(pred1, pred2)
 }
 
-plot(R2, xlab = "Step", ylab = "R-sq", pch = 16, axes = T)
+#plot(R2, xlab = "Step", ylab = "R-sq", pch = 16, axes = T)
 #plot(correlation, xlab = "Step", ylab = "Correlation")
 #par(new=T)
 #plot(R2, xlab = "", ylab = "", pch = 16, axes = F)
@@ -515,9 +526,10 @@ for(i in 1:n){
     newdata = data.frame(seq(min(d$wa0), max(d$wa0), length.out = 100))
     names(newdata) = "wa0"
     pred1 = predict(m, newdata = newdata)
-    plot(pred1 ~ newdata$wa0, type = "n", ylab = "Predicted R", xlab = "Sum of neg. daily air temp.(°C)", ylim = c(0,4000), main="Winter severity (1)")
+    plot(pred1 ~ newdata$wa0, type = "n", ylab = "Predicted R", xlab = "Sum of neg. daily air temp.(°C)", ylim = c(0,4000))
     lines(pred1~newdata$wa0, col = col[i])
     R2[i] = summary(m)$r.sq
+    mtext("c) Winter severity (1)", side = 3,  line = 0.5, adj=0, cex = 0.8)
   }
   pred2 = predict(m, newdata = newdata)
   lines(pred2~newdata$wa0, col = col[i])
