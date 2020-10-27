@@ -298,7 +298,7 @@ lines(oos_R1~year, data = newdata, col = 96, pch = 16)
 mtext("c) M2, step 1", side=3, adj=0, cex= 0.9)
 r2 = round(summary(lm(R~oos_R1, data= newdata))$adj.r.squared, digits = 2)
 text(1956, 6800, labels = expression(paste("Adj.",R**2,"=")), pos = 4, cex = 0.9)
-text(1971, 6900, labels = r2, cex = 0.9)
+text(1972, 6900, labels = r2, cex = 0.9)
 
 #Step2: te(open_E2, SSB) + te(wa0,SSB)
 summary(gam(var ~ te(open_E2, SSB) + te(wa0,SSB), data = d))#0.694 
@@ -326,7 +326,7 @@ lines(oos_R1~year, data = newdata, col = 96, pch = 16)
 mtext("d) M2, step 2", side=3, adj=0, cex= 0.9)
 r2 = round(summary(lm(R~oos_R1, data= newdata))$adj.r.squared, digits = 2)
 text(1956, 6800, labels = expression(paste("Adj.",R**2,"=")), pos = 4, cex = 0.9)
-text(1971, 6900, labels = r2, cex = 0.9)
+text(1972, 6900, labels = r2, cex = 0.9)
 
 } #End of OOS
 
@@ -450,7 +450,7 @@ for(i in 1:n){
 }
 
 plot(R2, xlab = "GWA step", ylab = expression(paste("Adjusted ",R**2)), pch = 16, axes = T)
-mtext(expression(paste("b) Adj.",R**2, "of GWA steps")), side = 3,  line = 0.2, adj=0, cex = 0.7)
+mtext(expression(paste("b) Adj. ",R**2, "of GWA steps")), side = 3,  line = 0.2, adj=0, cex = 0.7)
 
 for(i in 1:n){
   set = d[c(1:(19+i)),]
@@ -474,7 +474,7 @@ color.legend(6,0,13,300,col.text,matlab.like(8),align="rt",gradient="x", cex = .
 text(13,900, labels = "Color legend: total years in step", cex = 0.8, pos = 2)
 
 plot(R2, xlab = "GWA step", ylab = expression(paste("Adjusted ",R**2)), pch = 16, axes = T)
-mtext(expression(paste("d) Adj.",R**2, "of GWA steps")), side = 3,  line = 0.2, adj=0, cex = 0.7)
+mtext(expression(paste("d) Adj. ",R**2, "of GWA steps")), side = 3,  line = 0.2, adj=0, cex = 0.7)
 
 
 for(i in 1:n){
@@ -495,5 +495,5 @@ for(i in 1:n){
 }
 
 plot(R2, xlab = "GWA step", ylab = expression(paste("Adjusted ",R**2)), pch = 16, axes = T)
-mtext(expression(paste("f) Adj.",R**2, "of GWA steps")), side = 3,  line = 0.2, adj=0, cex = 0.7)
+mtext(expression(paste("f) Adj. ",R**2, "of GWA steps")), side = 3,  line = 0.2, adj=0, cex = 0.7)
 }
