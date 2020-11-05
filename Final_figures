@@ -432,6 +432,7 @@ par(mfrow = c(3, 2), tck=-0.02,mar=c(2.5,2.8,2,1), mgp = c(1.3,0.3,0))
 d = d[order(d$year),]
 n = 55-19
 R2 = rep(NA, n)
+p = rep(NA, n)
 col = matlab.like(n)
 for(i in 1:n){
   set = d[c(1:(19+i)),]
@@ -443,14 +444,21 @@ for(i in 1:n){
     plot(pred1 ~ newdata$SSB, type = "n", ylab = expression(paste("R (",10^6," individuals)")), xlab = "SSB (1000 tons)", ylim = c(0,4000))
     lines(pred1~newdata$SSB, col = col[i])
     R2[i] = summary(m)$r.sq
+    p[i]=summary(m)$s.table[1,4]
     mtext("a) Model: R~s(SSB)", side = 3,  line = 0.2, adj=0, cex = 0.7)
   }
   pred2 = predict(m, newdata = newdata)
   lines(pred2~newdata$SSB, col = col[i])
   R2[i] = summary(m)$r.sq
+  p[i]=summary(m)$s.table[1,4]
+  k=c(20:55)
+  r = data.frame(k, R2, p)
+  names(r) = c("k","R2", "p")
 }
 
-plot(R2, xlab = "GWA step", ylab = expression(paste("Adjusted ",R**2)), pch = 16, axes = T)
+plot(R2~k, xlab = "GWA step", ylab = expression(paste("Adjusted ",R**2)), pch = 1, axes = T)
+idx=which(r$p<0.05)
+points(R2[idx]~k[idx], xlab = "", ylab = "", pch = 16, axes = F)
 mtext(expression(paste("b) Adj. ",R**2, "of GWA steps")), side = 3,  line = 0.2, adj=0, cex = 0.7)
 
 for(i in 1:n){
@@ -463,18 +471,25 @@ for(i in 1:n){
     plot(pred1 ~ newdata$open_E2, type = "n", ylab = expression(paste("R (",10^6," individuals)")), xlab = expression(paste("Abudance ln(ind. ",m**-2,")")), ylim = c(0,4000))
     lines(pred1~newdata$open_E2, col = col[i])
     R2[i] = summary(m)$r.sq
+    p[i]=summary(m)$s.table[1,4]
     mtext("c) Model: R~s(E.affinis (IV-V))", side = 3,  line = 0.2, adj=0, cex = 0.7)
   }
   pred2 = predict(m, newdata = newdata)
   lines(pred2~newdata$open_E2, col = col[i])
   R2[i] = summary(m)$r.sq
+  p[i]=summary(m)$s.table[1,4]
+  k=c(20:55)
+  r = data.frame(k, R2, p)
+  names(r) = c("k","R2", "p")
 }
 
 col.text = c(20,25,30,35,40,45,50,55)
 color.legend(6,0,13,300,col.text,matlab.like(8),align="rt",gradient="x", cex = .7)
 text(13,900, labels = "Color legend: total years in step", cex = 0.8, pos = 2)
 
-plot(R2, xlab = "GWA step", ylab = expression(paste("Adjusted ",R**2)), pch = 16, axes = T)
+plot(R2~k, xlab = "GWA step", ylab = expression(paste("Adjusted ",R**2)), pch = 1, axes = T)
+idx=which(r$p<0.05)
+points(R2[idx]~k[idx], xlab = "", ylab = "", pch = 16, axes = F)
 mtext(expression(paste("d) Adj. ",R**2, "of GWA steps")), side = 3,  line = 0.2, adj=0, cex = 0.7)
 
 
@@ -488,18 +503,27 @@ for(i in 1:n){
     plot(pred1 ~ newdata$wa0, type = "n", ylab = expression(paste("R (",10^6," individuals)")), xlab = "Sum of neg. daily air temp.(°C)", ylim = c(0,4000))
     lines(pred1~newdata$wa0, col = col[i])
     R2[i] = summary(m)$r.sq
+    p[i]=summary(m)$s.table[1,4]
     mtext("e) Model: R~s(winter severity (WS1))", side = 3,  line = 0.2, adj=0, cex = 0.7)
   }
   pred2 = predict(m, newdata = newdata)
   lines(pred2~newdata$wa0, col = col[i])
   R2[i] = summary(m)$r.sq
+  p[i]=summary(m)$s.table[1,4]
+  k=c(20:55)
+  r = data.frame(k, R2, p)
+  names(r) = c("k","R2", "p")
 }
 
-plot(R2, xlab = "GWA step", ylab = expression(paste("Adjusted ",R**2)), pch = 16, axes = T)
+plot(R2~k, xlab = "GWA step", ylab = expression(paste("Adjusted ",R**2)), pch = 1, axes = T)
+idx=which(r$p<0.05)
+points(R2[idx]~k[idx], xlab = "", ylab = "", pch = 16, axes = F)
 mtext(expression(paste("f) Adj. ",R**2, "of GWA steps")), side = 3,  line = 0.2, adj=0, cex = 0.7)
 }
 
-plot(open_E1 ~ year, data = d, type = "l", 
+
+
+#####plot(open_E1 ~ year, data = d, type = "l", 
      col = 1, lwd=1.5,
      axes = T,
      ylab = expression(paste("Abudance ln(ind. ",m**-2,")")), xlab="Year", ylim=c(0,14))
