@@ -418,11 +418,11 @@ if(TRUE){
   par(new=T)
   plot(meanE2_open ~ meanSSB, type = "l", col = grey(0.5), axes = F, ylab = "", xlab = "")
   axis(4);mtext("Mean ln(ind. ,m-2)) abund.", side = 4,  line = 1.2, cex = 0.65, col = grey(0.5))
-  mtext("b) E. affinis (IV-V)", side = 3, line = 0.2, adj=0, cex = 0.7)
+  mtext("c) E. affinis (IV-V)", side = 3, line = 0.2, adj=0, cex = 0.7)
   
   plot(R2~meanSSB, xlab = "Middle year", ylab = expression(paste("Adjusted ",R**2)), pch = 1, axes = T)
   idx=which(r$p<0.05)
-  points(R2[idx]~meanSSB[idx], xlab = "", ylab = "", pch = 16, axes = F)
+  points(R2[idx]~meanSSB[idx], xlab = "", ylab = "", pch = 16)
   mtext(expression(paste("d) Adj. ",R**2, "of SWA steps")), side = 3,  line = 0.2, adj=0, cex = 0.7)
   
   #WS1
@@ -453,11 +453,11 @@ if(TRUE){
   par(new=T)
   plot(meanWA0 ~ meanSSB, type = "l", col = grey(0.5), axes = F, ylab = "", xlab = "", cex=0.8)
   axis(4);mtext("Mean WS1 C", side = 4,  line = 1.2, cex = 0.65, col = grey(0.5))
-  mtext("c) Winter severity (WS1)", side = 3,  line = 0.2, adj=0, cex = 0.7)
+  mtext("e) Winter severity (WS1)", side = 3,  line = 0.2, adj=0, cex = 0.7)
   
   plot(R2~meanSSB, xlab = "Middle year", ylab = expression(paste("Adjusted ",R**2)), pch = 1, axes = T)
   idx=which(r$p<0.05)
-  points(R2[idx]~meanSSB[idx], xlab = "", ylab = "", pch = 16, axes = F)
+  points(R2[idx]~meanSSB[idx], xlab = "", ylab = "", pch = 16)
   mtext(expression(paste("f) Adj. ",R**2, "of SWA steps")), side = 3,  line = 0.2, adj=0, cex = 0.7)
 }
 
