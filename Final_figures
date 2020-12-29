@@ -38,6 +38,7 @@ d$E2_2[which(d$year == 1985)] = mean(d$E2_2[which(d$year %in% c(1984,1985,1986))
 #Prep end
 
 #Aegread SSB, R, wa, wa0, open_E2
+#Fig. 1
 quartz(width=3.25,height=5.5,pointsize=10/0.83)#1 column wide, 3 rows high
 
 if(TRUE){
@@ -96,6 +97,57 @@ if(TRUE){
   mtext("c) Winter severity", side=3, adj=0, cex= 0.8)
 }
 
+#For Supp. mat. Fig. S1.
+
+quartz(width=3.25,height=5.5,pointsize=10/0.83)
+if(TRUE){
+  par(mfrow = c(3, 1), tck=-0.02, mar=c(2.5,2.8,2,2.8), mgp = c(1.3,0.3,0))
+  
+  plot(d$may_june ~ d$year, axes=T, ylab="Mean air temperature(°C)", xlab="Year", pch = 16)
+  lines(d$may_june ~ d$year)
+  axis(2, col=1)
+  axis(1, at = c(1960, 1970, 1980, 1990, 2000, 2010), col=1)
+  mtext("a) Mean spring air temperature", side=3, adj=0, cex= 0.8)
+
+  plot(open_E1 ~ year, data = d, type="l",
+       col = 1, lwd=1.5, 
+       axes = T,
+       ylab = expression(paste("Abudance ln(ind. ",m**-2,")")), xlab="Year", ylim=c(3,14))
+  axis(2, col=1)
+  axis(1, at = c(1960, 1970, 1980, 1990, 2000, 2010), col=1)
+  lines(c(2000, 2005), c(6, 6), col=1)
+  lines(c(2000, 2005),c(5, 5), col = 96, lty=1)
+  text(c(2006, 2006),c(6, 5), labels = c("I-III", "adult"), pos = 4)
+  par(new = T)
+  plot(open_E3 ~ year, data = d, type="l", 
+       col = 96, lwd=1.5,
+       axes = F,
+       ylab = "", xlab="")
+  mtext("b) E. affinis GoR", side = 3, adj = 0, line = 0, cex = .8) 
+  
+  plot(E1_2 ~ year, data = d, type="l",
+       col = 1, lwd=1.5, 
+       axes = T,
+       ylab = expression(paste("Abudance ln(ind. ",m**-2,")")), xlab="Year", ylim=c(3,14))
+  axis(2, col=1)
+  axis(1, at = c(1960, 1970, 1980, 1990, 2000, 2010), col=1)
+  lines(c(2000, 2005), c(6, 6), col=1)
+  lines(c(2000, 2005),c(5, 5), col = 1, lty=2)
+  lines(c(2000, 2005),c(4, 4), col = 96, lty=1)
+  text(c(2006, 2006, 2006),c(6, 5, 4), labels = c("I-III", "IV-V", "adult"), pos = 4)
+  par(new = T)
+  plot(E2_2 ~ year, data = d, type="l",lty=3, 
+       col = 1, lwd=1.5,
+       axes = F,
+       ylab = "", xlab="")
+  par(new = T)
+  plot(E3_2 ~ year, data = d, type="l", 
+       col = 96, lwd=1.5,
+       axes = F,
+       ylab = "", xlab="")
+  mtext("c) E. affinis Parnu Bay", side = 3, adj = 0, line = 0, cex = .8) 
+  }
+
 #
 d = final[which(final$complete == "yes"),]
 
@@ -103,6 +155,7 @@ d = final[which(final$complete == "yes"),]
 summary(gam(R ~ s(open_E2, k = 4), data = d)) # 0.456 PARIM
 summary(gam(R ~ s(open_E2, k = 4) + s(wa0, k = 4), data = d))#0.522
 
+#Fig. 2
 quartz(width = 5.25, height=2, pointsize=8.5)#2 column wide, 1 row high
 if(TRUE){
   n=55
@@ -146,6 +199,8 @@ summary(gam(R ~ te(open_E2, SSB, k = 4) + te(wa0, SSB, k=4), data = d))#0.662
 
 #Create 2D images of te(open_E2, SSB0) and te(wa0, SSB)
 quartz(width = 5.25, height=2, pointsize=8.5)#2 column wide, 1 row high
+
+#Fig. 3.
 
 if(T){
   
@@ -209,6 +264,7 @@ if(T){
 
 #####
 ##Out of sample prediction skill (with and without interactions)
+#Fig. 4
 
 #Plot 
 quartz(width = 5.25, height=4, pointsize=10)#2 column wide, 1 row high
@@ -338,7 +394,7 @@ if(T){
 
 
 
-
+#Fig. 6
 #SWA
 #SSB, WA, WA0, open_E2
 newdata = subset(d, select = c("year","R", "SSB", "open_E2", "wa", "wa0"))
