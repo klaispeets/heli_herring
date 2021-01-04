@@ -508,7 +508,7 @@ if(TRUE){
   abline(h = 0, lwd = 0.5)
   par(new=T)
   plot(meanWA0 ~ meanSSB, type = "l", col = grey(0.5), axes = F, ylab = "", xlab = "", cex=0.8)
-  axis(4);mtext("Mean WS1 C", side = 4,  line = 1.2, cex = 0.65, col = grey(0.5))
+  axis(4);mtext("Mean WS1 (°C)", side = 4,  line = 1.2, cex = 0.65, col = grey(0.5))
   mtext("e) Winter severity (WS1)", side = 3,  line = 0.2, adj=0, cex = 0.7)
   
   plot(R2~meanSSB, xlab = "Middle year", ylab = expression(paste("Adjusted ",R**2)), pch = 1, axes = T)
