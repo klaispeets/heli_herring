@@ -1,0 +1,268 @@
+library(Rcpp)
+library(RcppThread)
+library(rEDM)
+library(usethis)
+library(devtools)
+
+
+
+data=data.frame(c(1:59))
+names(data)="time"
+
+R=c(2336.000, 875.000, 2147.000, 586.000, 3245.000, 1907.000, 1814.000, 3175.000, 1300.000, 758.000, 2092.000, 1131.000, 1821.000, 3803.000, 1367.000, 1287.000, 1916.000, 927.000, 3937.000, 943.222, 1076.482, 976.944, 1110.340, 908.420, 1688.991, 1253.648, 2027.187, 1387.985, 1120.294, 3928.311, 560.920, 1292.204, 3644.814, 3689.164, 4318.119, 3255.933, 2786.684, 3468.223, 4663.893, 1594.037, 2765.927, 2895.256, 2643.906, 6085.227, 2280.487, 7102.467, 1027.151, 3193.548, 7022.420, 2030.081, 5547.611, 2830.143, 2864.924, 1167.994, 5619.073, 5915.620, 1106.071, 2489.287, 4254.796)
+
+data$R=R
+
+str(data)
+ts=data$R #timeseries
+
+#left out lib and pred
+simplex_output <- simplex(ts)
+
+#finding out E
+str(simplex_output)
+par(mfrow = c(2, 2), tck = -0.02, mar = c(2.7, 2.7, 2.5, 1), mgp = c(1.3,0.3,0), cex.axis = 1.1, cex.lab = 1.1)
+plot(simplex_output$E, simplex_output$rho, type = "l", xlab = "Embedding Dimension (E)", 
+     ylab = "Forecast Skill (rho)")
+#E=3
+
+simplex_output <- simplex(ts, E = 3, tp = 1:10)
+plot(simplex_output$tp, simplex_output$rho, type = "l", xlab = "Time to Prediction (tp)", 
+     ylab = "Forecast Skill (rho)")
+
+#Smap testing nonlinearity
+
+smap_output <- s_map(ts, E = 3)
+
+plot(smap_output$theta, smap_output$rho, type = "l", xlab = "Nonlinearity (theta)", ylab = "Forecast Skill (rho)")
+
+#nonlinear
+
+ts_err <- ts + rnorm(length(ts), sd = sd(ts) * 0.2)
+smap_output_err <- s_map(ts_err, E = 3)
+plot(smap_output_err$theta, smap_output_err$rho, type = "l", xlab = "Nonlinearity (theta)", 
+     ylab = "Forecast Skill (rho)")
+
+
+#Generalized takens's theorem
+#open consolidated_herring-2.RData
+##load("~/Desktop/Fin_herring/consolidated_herring-2.RData")
+
+###make block data
+
+make_block(final[, c(2, 15, 17, 3)])==block
+str(block)
+
+lib <- c(1, NROW(block))
+pred <- c(1, NROW(block))
+
+block_lnlp_output <- block_lnlp(block, lib = lib, pred = pred, columns = c("R", "R_1", "open_E2"), target_column = "R", stats_only = FALSE, first_column_time = TRUE, silent = TRUE)
+str(block_lnlp_output)
+
+list_of_model_predictions <- block_lnlp_output$model_output
+first_data_frame_of_predictions <- list_of_model_predictions[[1]]
+
+observed <- first_data_frame_of_predictions$obs
+predicted <- first_data_frame_of_predictions$pred
+
+plot_range <- range(c(observed, predicted), na.rm = TRUE)
+plot(observed, predicted, xlim = plot_range, ylim = plot_range, xlab = "Observed", 
+     ylab = "Predicted", asp = 1)
+abline(a = 0, b = 1, lty = 2, col = "blue")
+
+#S-map coefficients 
+
+#data=block
+
+lib <- c(1, NROW(block))
+pred <- c(1, NROW(block))
+
+cols <- c("R", "SSB", "open_E2", "wa")
+target <- "R"
+
+block_smap_output <- block_lnlp(block, lib = lib, pred = pred, columns = cols, target_column = target, method = "s-map", theta = 2, stats_only = FALSE, first_column_time = TRUE, save_smap_coefficients = TRUE, silent = TRUE)
+
+smap_coeffs <- block_smap_output$smap_coefficients[[1]]
+str(smap_coeffs)
+
+predictions <- block_smap_output$model_output[[1]]
+t <- predictions$time
+
+par(mfrow = c(5, 1), tck=-0.02, mar=c(2.5,2.8,2,2.8), mgp = c(1.3,0.3,0))
+
+plot(t, predictions$obs, type = "l", col = "black", ylab = "R", xlab = "")
+lines(t, predictions$pred, lty = 2)
+legend("topright", legend = c("observed", "predicted"), lty = c(1, 2), bty = "n")
+
+plot(t, smap_coeffs[, 1], type = "l", col = "red", ylab = "effect of R", xlab = "")
+plot(t, smap_coeffs[, 2], type = "l", col = "blue", ylab = "effect of SSB", xlab = "")
+plot(t, smap_coeffs[, 3], type = "l", col = "magenta", ylab = "effect of open_E2", 
+     xlab = "")
+plot(t, smap_coeffs[, 4], type = "l", col = "green", ylab = "effect of wa", 
+     xlab = "")
+
+#CCM variant 1 
+
+par(mfrow = c(3, 1), tck = -0.02, mar = c(2.7, 2.7, 2.5, 1), mgp = c(1.3,0.3,0), cex.axis = 1.1, cex.lab = 1.1)
+
+#R+SSB
+
+R_xmap_sst <- ccm(block, E = 3, lib_column = "R", target_column = "SSB", lib_sizes = seq(10, 60, by = 5), num_samples = 60, random_libs = TRUE, replace = TRUE, silent = TRUE)
+
+sst_xmap_R <- ccm(block, E = 3, lib_column = "SSB", target_column = "R", lib_sizes = seq(10, 60, by = 5), num_samples = 60, random_libs = TRUE, replace = TRUE, silent = TRUE)
+
+str(R_xmap_sst)
+
+a_xmap_t_means <- ccm_means(R_xmap_sst)
+t_xmap_a_means <- ccm_means(sst_xmap_R)
+
+plot(a_xmap_t_means$lib_size, pmax(0, a_xmap_t_means$rho), type = "l", col = "red", xlab = "Library Size", ylab = "Cross Map Skill (rho)", ylim = c(0.2, 0.8))
+lines(t_xmap_a_means$lib_size, pmax(0, t_xmap_a_means$rho), col = "blue")
+legend(x = "bottomleft", legend = c("R xmap SSB", "SSB xmap R"), col = c("red", "blue"), lwd = 1, bty = "n", inset = 0.02, cex = 0.8)
+
+#S+open_E2
+
+R_xmap_sst <- ccm(block, E = 3, lib_column = "R", target_column = "open_E2", lib_sizes = seq(10, 60, by = 5), num_samples = 60, random_libs = TRUE, replace = TRUE, silent = TRUE)
+
+sst_xmap_R <- ccm(block, E = 3, lib_column = "open_E2", target_column = "R", lib_sizes = seq(10, 60, by = 5), num_samples = 60, random_libs = TRUE, replace = TRUE, silent = TRUE)
+
+str(R_xmap_sst)
+
+a_xmap_t_means <- ccm_means(R_xmap_sst)
+t_xmap_a_means <- ccm_means(sst_xmap_R)
+
+plot(a_xmap_t_means$lib_size, pmax(0, a_xmap_t_means$rho), type = "l", col = "red", xlab = "Library Size", ylab = "Cross Map Skill (rho)", ylim = c(0.3, 0.6))
+lines(t_xmap_a_means$lib_size, pmax(0, t_xmap_a_means$rho), col = "blue")
+legend(x = "bottomleft", legend = c("R xmap open_E2", "open_E2 xmap R"), col = c("red", "blue"), lwd = 1, bty = "n", inset = 0.02, cex = 0.8)
+
+#R +wa
+
+R_xmap_sst <- ccm(block, E = 3, lib_column = "R", target_column = "wa", lib_sizes = seq(10, 60, by = 5), num_samples = 60, random_libs = TRUE, replace = TRUE, silent = TRUE)
+
+sst_xmap_R <- ccm(block, E = 3, lib_column = "wa", target_column = "R", lib_sizes = seq(10, 60, by = 5), num_samples = 60, random_libs = TRUE, replace = TRUE, silent = TRUE)
+
+str(R_xmap_sst)
+
+a_xmap_t_means <- ccm_means(R_xmap_sst)
+t_xmap_a_means <- ccm_means(sst_xmap_R)
+
+plot(a_xmap_t_means$lib_size, pmax(0, a_xmap_t_means$rho), type = "l", col = "red", xlab = "Library Size", ylab = "Cross Map Skill (rho)", ylim = c(0, 0.3))
+lines(t_xmap_a_means$lib_size, pmax(0, t_xmap_a_means$rho), col = "blue")
+legend(x = "bottomleft", legend = c("R xmap wa", "wa xmap R"), col = c("red", "blue"), lwd = 1, bty = "n", inset = 0.02, cex = 0.8)
+
+######Quantifying predictability and nonlinearity
+
+vars <- c("open_E2", "SSB", "wa")
+simplex_out <- lapply(vars, function(var) {
+  simplex(block[, c("time", var)], E = 1:5, lib = lib, pred = pred)
+})
+names(simplex_out) <- vars
+
+par(mfrow = c(2, 2))
+for (var in names(simplex_out)) {
+  plot(simplex_out[[var]]$E, simplex_out[[var]]$rho, type = "l", xlab = "Embedding Dimension (E)", 
+       ylab = "Forecast Skill (rho)", main = var)
+}
+
+best_E <- sapply(simplex_out, function(df) {
+  df$E[which.max(df$rho)]
+})
+best_E #open_E2 3; SSB 2; wa 2
+
+#smap
+smap_out <- lapply(vars, function(var) {
+  s_map(block[, c("time", var)], E = best_E[var], lib = lib, 
+        pred = pred)
+})
+names(smap_out) <- names(simplex_out)
+
+par(mfrow = c(2, 2))
+for (var in names(smap_out)) {
+  plot(smap_out[[var]]$theta, smap_out[[var]]$rho, type = "l", xlab = "Nonlinearity (theta)", 
+       ylab = "Forecast Skill (rho)", main = var)
+}
+
+
+####
+
+#Multivariate Models
+
+R_columns <- c("R", "R_1", "R_2")
+R_output <- block_lnlp(block, lib = lib, pred = pred, 
+                        columns = R_columns, target_column = "R", stats_only = FALSE)
+
+EA_columns <- c(R_columns, "open_E2")
+EA_output <- block_lnlp(block, lib = lib, pred = pred, 
+                            columns = EA_columns, target_column = "R", stats_only = FALSE)
+
+
+observed_R <- R_output$model_output[[1]]$obs
+predicted_R <- R_output$model_output[[1]]$pred
+
+observed_EA <- EA_output$model_output[[1]]$obs
+predicted_EA <- EA_output$model_output[[1]]$pred
+
+plot_range <- range(c(observed_R, predicted_R), na.rm = TRUE)
+plot(observed_R, predicted_R, xlim = plot_range, ylim = plot_range, xlab = "Observed", 
+     ylab = "Predicted")
+abline(a = 0, b = 1, lty = 2, col = "darkgrey", lwd = 2)
+abline(lm(predicted_R ~ observed_R), col = "black", lty = 3, lwd = 2)
+
+points(observed_EA, predicted_EA, pch = 2, col = "red")
+abline(lm(predicted_EA ~ observed_EA), col = "red", lty = 3, lwd = 2)
+
+legend("bottom", legend = c(paste("(biomass alone) rho =", round(EA_output$rho, 2)), paste("(biomass and prec.) rho =", round(EA_output$rho, 2))), lty = 3, lwd = 2, col = c("black", "red"), box.col = NA, xpd = TRUE)
+
+###Convergent Cross Mapping variant 2 (arvestab ka SSB, wa, open_E2 oma Ed). 
+
+#R+SSB
+
+lib_sizes <- c(seq(5, 40, by = 5), seq(45, 55, by = 5))
+R_xmap_SSB <- ccm(block, lib = lib, pred = pred, lib_column = "R", 
+                   target_column = "SSB", E = 3, lib_sizes = lib_sizes, 
+                   silent = TRUE)
+SSB_xmap_R <- ccm(block, lib = lib, pred = pred, lib_column = "SSB", 
+                   target_column = "R", E = best_E["SSB"], lib_sizes = lib_sizes, 
+                   silent = TRUE)
+
+R_xmap_SSB_means <- ccm_means(R_xmap_SSB)
+SSB_xmap_R_means <- ccm_means(SSB_xmap_R)
+
+par(mfrow = c(3, 1))
+plot(R_xmap_SSB_means$lib_size, pmax(0, R_xmap_SSB_means$rho), type = "l", xlab = "Library Size", ylab = "Cross Map Skill (rho)", col = "red",ylim = c(0.2, 0.8), lwd = 2)
+lines(SSB_xmap_R_means$lib_size, pmax(0, SSB_xmap_R_means$rho), col = "blue", lwd = 2)
+legend(x = "topleft", col = c("red", "blue"), lwd = 2, legend = c("R xmap SSB", "SSB xmap R"), inset = 0.02, bty = "n", cex = 0.8)
+
+
+#R+ wa
+
+R_xmap_wa <- ccm(block, lib = lib, pred = pred, lib_column = "R", 
+                  target_column = "SSB", E = 3, lib_sizes = lib_sizes, 
+                  silent = TRUE)
+wa_xmap_R <- ccm(block, lib = lib, pred = pred, lib_column = "wa", 
+                  target_column = "R", E = best_E["wa"], lib_sizes = lib_sizes, 
+                  silent = TRUE)
+
+R_xmap_wa_means <- ccm_means(R_xmap_wa)
+wa_xmap_R_means <- ccm_means(wa_xmap_R)
+
+plot(R_xmap_wa_means$lib_size, pmax(0, R_xmap_wa_means$rho), type = "l", xlab = "Library Size", ylab = "Cross Map Skill (rho)", col = "red",ylim = c(0, 0.8), lwd = 2)
+lines(wa_xmap_R_means$lib_size, pmax(0, wa_xmap_R_means$rho), col = "blue", lwd = 2)
+legend(x = "topleft", col = c("red", "blue"), lwd = 2, legend = c("R xmap wa", "wa xmap R"), inset = 0.02, bty = "n", cex = 0.8)
+
+
+##R+open_E2
+R_xmap_E <- ccm(block, lib = lib, pred = pred, lib_column = "R", 
+                  target_column = "open_E2", E = 3, lib_sizes = lib_sizes, 
+                  silent = TRUE)
+E_xmap_R <- ccm(block, lib = lib, pred = pred, lib_column = "open_E2", 
+                  target_column = "R", E = best_E["open_E2"], lib_sizes = lib_sizes, 
+                  silent = TRUE)
+
+R_xmap_E_means <- ccm_means(R_xmap_E)
+E_xmap_R_means <- ccm_means(E_xmap_R)
+
+plot(R_xmap_E_means$lib_size, pmax(0, R_xmap_E_means$rho), type = "l", xlab = "Library Size", ylab = "Cross Map Skill (rho)", col = "red",ylim = c(0.2, 0.7), lwd = 2)
+lines(E_xmap_R_means$lib_size, pmax(0, E_xmap_R_means$rho), col = "blue", lwd = 2)
+legend(x = "topleft", col = c("red", "blue"), lwd = 2, legend = c("R xmap E", "E xmap R"), inset = 0.02, bty = "n", cex = 0.8)
+
