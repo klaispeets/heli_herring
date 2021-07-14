@@ -53,6 +53,8 @@ plot(smap_output_err$theta, smap_output_err$rho, type = "l", xlab = "Nonlinearit
 make_block(final[, c(2, 15, 17, 3)])==block
 str(block)
 
+#open_E2 2 aastat puudu (jätan tühjaks ikka)
+
 lib <- c(1, NROW(block))
 pred <- c(1, NROW(block))
 
